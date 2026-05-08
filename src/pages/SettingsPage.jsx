@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { Button, Input } from '../components/ui/index'
 import { User, Shield, Bell, Moon, Sun, Monitor, Trash2, Camera, Loader2 } from 'lucide-react'
@@ -12,15 +12,29 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const [activeTab, setActiveTab] = useState('profile')
   const [isUploading, setIsUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState(null)
   
   // Profile Form
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
+    name: '',
+    email: '',
     currency: 'USD',
     monthlyIncomeTarget: '5000',
     financialGoal: 'Buy a House',
   })
+
+  // Sync local form state with global user state
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name || '',
+        email: user.email || '',
+        currency: user.currency || 'USD',
+        monthlyIncomeTarget: user.monthlyIncomeTarget || '5000',
+        financialGoal: user.financialGoal || 'Buy a House',
+      })
+    }
+  }, [user])
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [profileSuccess, setProfileSuccess] = useState('')
   const [avatarSuccess, setAvatarSuccess] = useState('')
@@ -39,17 +53,37 @@ export default function SettingsPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Validation: Only images, max 2MB
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Image size must be less than 2MB.')
+      return
+    }
+
+    // Show preview immediately
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result)
+    }
+    reader.readAsDataURL(file)
+
     setIsUploading(true)
     try {
       const formData = new FormData()
       formData.append('avatar', file)
       const res = await authService.updateAvatar(formData)
-      // Update user in context
+      
+      // Update user in context and clear preview
       updateUser(res.data)
+      setPreviewUrl(null)
       setAvatarSuccess('Profile picture updated successfully!')
       setTimeout(() => setAvatarSuccess(''), 3000)
     } catch (err) {
       console.error('Failed to upload avatar', err)
+      setPreviewUrl(null)
       alert('Failed to upload avatar. Check server logs.')
     } finally {
       setIsUploading(false)
@@ -152,6 +186,8 @@ export default function SettingsPage() {
                     <div className="w-24 h-24 rounded-full bg-surface-800 border-2 border-emerald-500/30 flex items-center justify-center overflow-hidden ring-4 ring-emerald-500/10 group-hover:ring-emerald-500/30 transition-all duration-300">
                       {isUploading ? (
                         <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                      ) : previewUrl ? (
+                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover animate-pulse" />
                       ) : user?.avatar ? (
                         <img src={user.avatar} alt={user.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (

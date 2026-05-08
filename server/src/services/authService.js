@@ -15,6 +15,9 @@ const signToken = (userId) => {
 /**
  * Format user response — strips sensitive fields.
  */
+/**
+ * Format user response — strips sensitive fields.
+ */
 const formatUser = (user, token) => ({
   token,
   user: {
@@ -23,6 +26,11 @@ const formatUser = (user, token) => ({
     email: user.email,
     currency: user.currency,
     monthlyIncome: user.monthlyIncome,
+    monthlyIncomeTarget: user.monthlyIncomeTarget,
+    financialGoal: user.financialGoal,
+    avatar: user.avatar,
+    theme: user.theme,
+    timezone: user.timezone,
     createdAt: user.createdAt,
   },
 });
@@ -59,12 +67,18 @@ export const loginUser = async ({ email, password }) => {
 export const getProfile = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found', 404);
+  
   return {
     id: user._id,
     name: user.name,
     email: user.email,
     currency: user.currency,
     monthlyIncome: user.monthlyIncome,
+    monthlyIncomeTarget: user.monthlyIncomeTarget,
+    financialGoal: user.financialGoal,
+    avatar: user.avatar,
+    theme: user.theme,
+    timezone: user.timezone,
     createdAt: user.createdAt,
   };
 };

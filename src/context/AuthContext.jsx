@@ -9,19 +9,35 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (savedUser && token) {
-      try {
-        setUser(JSON.parse(savedUser));
-        socketService.connect(token);
-      } catch {
-        // Corrupted storage — clear it
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+    const initAuth = async () => {
+      const savedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (savedUser && token) {
+        try {
+          setUser(JSON.parse(savedUser));
+          socketService.connect(token);
+          
+          // Background refresh user data from server to keep state in sync
+          const res = await authService.getCurrentUser();
+          if (res.success) {
+            setUser(res.data);
+            localStorage.setItem('user', JSON.stringify(res.data));
+          }
+        } catch (error) {
+          console.error('Auth initialization error:', error);
+          // Only clear on actual auth failure, not network errors
+          if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            setUser(null);
+          }
+        }
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initAuth();
 
     return () => {
       socketService.disconnect();

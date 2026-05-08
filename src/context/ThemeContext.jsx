@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import * as authService from '../services/auth.service'
 
 const ThemeContext = createContext()
 
@@ -7,10 +8,25 @@ export function ThemeProvider({ children }) {
     return localStorage.getItem('billmaster-theme') || 'dark'
   })
 
+  // Sync theme with backend when it changes
+  const updateTheme = async (newTheme) => {
+    setTheme(newTheme)
+    localStorage.setItem('billmaster-theme', newTheme)
+    
+    // Also save to backend if user is logged in
+    try {
+      const token = localStorage.getItem('token')
+      if (token) {
+        await authService.updateProfile({ theme: newTheme })
+      }
+    } catch (err) {
+      console.error('Failed to sync theme to backend', err)
+    }
+  }
+
   useEffect(() => {
     const root = document.documentElement
-    localStorage.setItem('billmaster-theme', theme)
-
+    
     if (theme === 'system') {
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       root.classList.toggle('light', !systemDark)
@@ -34,7 +50,7 @@ export function ThemeProvider({ children }) {
   }, [theme])
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme: updateTheme }}>
       {children}
     </ThemeContext.Provider>
   )
