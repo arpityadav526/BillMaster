@@ -44,5 +44,17 @@ export const importTransactions = async (userId, accountId, transactions) => {
   account.lastSynced = Date.now();
   await account.save();
 
+  // Trigger Email Confirmation
+  try {
+    const User = (await import('../models/User.js')).default;
+    const { sendImportConfirmation } = await import('../utils/mailer.js');
+    const user = await User.findById(userId);
+    if (user && user.email) {
+      await sendImportConfirmation(user.email, user.name, inserted.length, account.provider);
+    }
+  } catch (error) {
+    console.error('Failed to send import confirmation:', error);
+  }
+
   return { importedCount: inserted.length };
 };

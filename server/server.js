@@ -55,6 +55,10 @@ const start = async () => {
     }
   });
 
+  // Initialize Schedulers (Background Jobs)
+  const { initScheduler } = await import('./src/jobs/scheduler.js');
+  initScheduler();
+
   // Start HTTP server
   server.listen(config.port, () => {
     console.log(`\n  ✓ API & WebSockets → http://localhost:${config.port}`);

@@ -55,8 +55,55 @@ export const sendBudgetExceededAlert = async (userEmail, userName, category, spe
       </div>
       <p>Log in to BillMaster to review your expenses and adjust your budget if needed.</p>
       <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">View Dashboard</a>
-      <p style="margin-top: 30px; font-size: 12px; color: #94a3b8;">You received this because you have budget alerts enabled in your BillMaster account.</p>
     </div>
   `;
   return sendEmail(userEmail, subject, `Budget exceeded for ${category}.`, html);
+};
+
+export const sendMonthlyReport = async (userEmail, userName, reportData) => {
+  const subject = `📈 Your Monthly Financial Report - ${reportData.month}`;
+  const html = `
+    <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+      <h2 style="color: #10b981;">Monthly Summary: ${reportData.month}</h2>
+      <p>Hello ${userName}, here is your financial snapshot for the past month:</p>
+      <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 10px; margin: 20px 0;">
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; text-align: center;">
+          <p style="margin: 0; font-size: 12px; color: #64748b;">Total Income</p>
+          <p style="margin: 5px 0 0; font-size: 18px; font-weight: bold; color: #10b981;">${reportData.totalIncome}</p>
+        </div>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; text-align: center;">
+          <p style="margin: 0; font-size: 12px; color: #64748b;">Total Expenses</p>
+          <p style="margin: 5px 0 0; font-size: 18px; font-weight: bold; color: #f43f5e;">${reportData.totalExpenses}</p>
+        </div>
+      </div>
+      <p><strong>Top Category:</strong> ${reportData.topCategory}</p>
+      <p><strong>Savings Rate:</strong> ${reportData.savingsRate}%</p>
+      <p>Keep up the great work with your financial goals!</p>
+    </div>
+  `;
+  return sendEmail(userEmail, subject, 'Your monthly report is ready.', html);
+};
+
+export const sendSalaryConfirmation = async (userEmail, userName, amount, source) => {
+  const subject = `💰 Salary Received: ${amount}`;
+  const html = `
+    <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+      <h2 style="color: #10b981;">Income Added!</h2>
+      <p>Hello ${userName}, your salary of <strong>${amount}</strong> from <strong>${source}</strong> has been successfully added to your BillMaster records.</p>
+      <p>Your dashboard stats have been updated.</p>
+    </div>
+  `;
+  return sendEmail(userEmail, subject, 'Income confirmation.', html);
+};
+
+export const sendImportConfirmation = async (userEmail, userName, count, provider) => {
+  const subject = `📥 Import Successful: ${count} transactions`;
+  const html = `
+    <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+      <h2 style="color: #10b981;">Sync Complete</h2>
+      <p>Hello ${userName}, we successfully imported <strong>${count}</strong> transactions from <strong>${provider}</strong>.</p>
+      <p>You can now categorize them in your Expenses page.</p>
+    </div>
+  `;
+  return sendEmail(userEmail, subject, 'Import successful.', html);
 };

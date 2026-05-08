@@ -1,8 +1,21 @@
 import Income from '../models/Income.js';
+import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
+import { sendSalaryConfirmation } from '../utils/mailer.js';
 
 export const createIncome = async (userId, data) => {
   const income = await Income.create({ ...data, user: userId });
+  
+  // Trigger Email Confirmation
+  try {
+    const user = await User.findById(userId);
+    if (user && user.email) {
+      await sendSalaryConfirmation(user.email, user.name, income.amount, income.source);
+    }
+  } catch (error) {
+    console.error('Failed to send income confirmation:', error);
+  }
+
   return income;
 };
 
