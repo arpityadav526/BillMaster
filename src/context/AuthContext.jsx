@@ -64,6 +64,15 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
+  const googleLogin = async (token) => {
+    const result = await authService.googleLogin(token);
+    if (result.success) {
+      setUser(result.data.user);
+      socketService.connect(result.data.token);
+    }
+    return result;
+  };
+
   // Explicit user update (used after profile/avatar changes)
   const updateUser = (userData) => {
     setUser(userData);
@@ -86,7 +95,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, register, logout, setUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

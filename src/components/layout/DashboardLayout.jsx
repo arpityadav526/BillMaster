@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Upload, CreditCard, Settings, LogOut,
   ChevronLeft, ChevronRight, TrendingUp, Menu, X, Bell, Search, Plus,
-  Link2, CheckCircle2, Info, AlertTriangle, Lightbulb, DollarSign
+  Link2, CheckCircle2, Info, AlertTriangle, Lightbulb, DollarSign, User as UserIcon
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
@@ -279,10 +279,12 @@ export function TopNavbar({ onAddExpense }) {
 
           <Link to="/settings" className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center cursor-pointer overflow-hidden ring-offset-2 ring-offset-surface-950 transition-all hover:ring-2 hover:ring-emerald-500/50">
             {user?.avatar ? (
-              <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-xs font-bold text-white">{user?.name?.charAt(0) || 'U'}</span>
-            )}
+              <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+            ) : null}
+            <div className={`w-full h-full bg-surface-800 flex items-center justify-center ${user?.avatar ? 'hidden' : 'flex'}`}>
+              <UserIcon className="w-4 h-4 text-surface-400" />
+            </div>
+            <span className={`text-xs font-bold text-white ${user?.avatar ? 'hidden' : ''}`}>{user?.name?.charAt(0).toUpperCase() || 'U'}</span>
           </Link>
         </div>
       </div>

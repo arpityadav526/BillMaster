@@ -4,8 +4,12 @@ import { Badge, Button, Input, Modal, Skeleton } from '../components/ui/index'
 import { categories } from '../data/mockData'
 import { Search, Plus, Edit3, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import * as expenseService from '../services/expense.service'
+import { useAuth } from '../context/AuthContext'
+import { formatAmount, getCurrencySymbol } from '../utils/currency'
 
 export default function ExpensesPage() {
+  const { user } = useAuth()
+  const currencySymbol = getCurrencySymbol(user?.currency)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
@@ -140,7 +144,7 @@ export default function ExpensesPage() {
                 <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Description</th>
                 <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Category</th>
                 <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Date</th>
-                <th className="text-right text-xs font-medium text-surface-700 pb-3 pr-4">Amount</th>
+                <th className="text-right text-xs font-medium text-surface-700 pb-3 pr-4">Amount ({currencySymbol})</th>
                 <th className="text-right text-xs font-medium text-surface-700 pb-3">Actions</th>
               </tr>
             </thead>
@@ -159,7 +163,7 @@ export default function ExpensesPage() {
                       <td className="py-3.5 pr-4"><span className="text-sm text-white font-medium">{tx.description}</span></td>
                       <td className="py-3.5 pr-4">{cat ? <Badge variant={catBadgeMap[tx.category] || 'blue'}>{cat.icon} {cat.name}</Badge> : <Badge variant="blue">{tx.category}</Badge>}</td>
                       <td className="py-3.5 pr-4"><span className="text-sm text-surface-200">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></td>
-                      <td className="py-3.5 pr-4 text-right"><span className="text-sm font-semibold text-white">-${tx.amount.toFixed(2)}</span></td>
+                      <td className="py-3.5 pr-4 text-right"><span className="text-sm font-semibold text-white">-{formatAmount(tx.amount, user?.currency)}</span></td>
                       <td className="py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => openEdit(tx)} className="p-1.5 rounded-lg hover:bg-white/5 text-surface-700 hover:text-primary-400 transition-colors cursor-pointer"><Edit3 className="w-4 h-4" /></button>
@@ -194,7 +198,7 @@ export default function ExpensesPage() {
         <form onSubmit={handleAdd} className="space-y-5">
           <Input label="Description" placeholder="e.g., Grocery shopping" value={newExpense.description} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })} required />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Amount" type="number" placeholder="0.00" step="0.01" value={newExpense.amount} onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })} required />
+            <Input label={`Amount (${currencySymbol})`} type="number" placeholder="0.00" step="0.01" value={newExpense.amount} onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })} required />
             <Input label="Date" type="date" value={newExpense.date} onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })} required />
           </div>
           <div className="space-y-2">
@@ -216,7 +220,7 @@ export default function ExpensesPage() {
           <form onSubmit={handleEdit} className="space-y-5">
             <Input label="Description" value={selectedExpense.description} onChange={(e) => setSelectedExpense({ ...selectedExpense, description: e.target.value })} required />
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Amount" type="number" value={selectedExpense.amount} step="0.01" onChange={(e) => setSelectedExpense({ ...selectedExpense, amount: e.target.value })} required />
+              <Input label={`Amount (${currencySymbol})`} type="number" value={selectedExpense.amount} step="0.01" onChange={(e) => setSelectedExpense({ ...selectedExpense, amount: e.target.value })} required />
               <Input label="Date" type="date" value={selectedExpense.date} onChange={(e) => setSelectedExpense({ ...selectedExpense, date: e.target.value })} required />
             </div>
             <div className="space-y-2">

@@ -13,11 +13,9 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   }
 
   let avatarPath = req.file.path;
-  // If local storage, convert to full absolute URL
+  // If local storage, convert to a relative URL that works via proxy
   if (req.file.filename) {
-    const protocol = req.protocol;
-    const host = req.get('host');
-    avatarPath = `${protocol}://${host}/uploads/avatars/${req.file.filename}`;
+    avatarPath = `/uploads/avatars/${req.file.filename}`;
   }
 
   const user = await userService.updateProfile(req.user._id, { avatar: avatarPath });

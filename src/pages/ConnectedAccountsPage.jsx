@@ -1,12 +1,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
-import { Card, Button, Badge, Skeleton } from '../components/ui/index'
+import { Button, Badge, Skeleton } from '../components/ui/index'
 import { Link2, Unlink, RefreshCw, Smartphone, Building2, Wallet, CheckCircle2, AlertTriangle, Upload, Loader2, FileJson } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import * as connectedAccountService from '../services/connected-account.service'
 
+const GPayLogo = () => (
+  <svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30.6 19.4c0-.7-.1-1.4-.2-2.1H20v4h5.9c-.3 1.4-1 2.5-2.2 3.3v2.8h3.5c2.1-1.9 3.4-4.8 3.4-8z" fill="#4285F4"/>
+    <path d="M20 30.2c2.8 0 5.1-.9 6.8-2.5l-3.5-2.8c-1 .6-2.2 1-3.3 1-2.6 0-4.8-1.7-5.6-4.1h-3.6v2.8c1.7 3.4 5.3 5.6 9.2 5.6z" fill="#34A853"/>
+    <path d="M14.4 21.8c-.2-.6-.3-1.2-.3-1.8s.1-1.2.3-1.8v-2.8h-3.6c-.6 1.2-1 2.6-1 4.6s.4 3.4 1 4.6l3.6-2.8z" fill="#FBBC05"/>
+    <path d="M20 9.8c1.5 0 2.9.5 4 1.5l3-3C25.1 6.5 22.7 5.6 20 5.6c-3.9 0-7.5 2.2-9.2 5.6l3.6 2.8c.8-2.4 3-4.2 5.6-4.2z" fill="#EA4335"/>
+  </svg>
+)
+
 const providers = [
-  { id: 'google_pay', name: 'Google Pay', type: 'upi', icon: Smartphone, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  { id: 'google_pay', name: 'Google Pay', type: 'upi', icon: GPayLogo, color: 'text-white', bg: 'bg-white/5' },
   { id: 'phonepe', name: 'PhonePe', type: 'upi', icon: Smartphone, color: 'text-purple-400', bg: 'bg-purple-500/10' },
   { id: 'paytm', name: 'Paytm', type: 'wallet', icon: Wallet, color: 'text-blue-400', bg: 'bg-blue-500/10' },
   { id: 'bank', name: 'Bank Account', type: 'bank', icon: Building2, color: 'text-amber-400', bg: 'bg-amber-500/10' },
@@ -148,9 +157,15 @@ export default function ConnectedAccountsPage() {
 
                   {connectedAcc ? (
                     <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
-                      <Badge variant="green" className="!px-3 !py-1.5 hidden sm:inline-flex">
-                        <CheckCircle2 className="w-3 h-3 mr-1" /> Connected
-                      </Badge>
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Connected
+                        </motion.div>
+                      </AnimatePresence>
                       <button 
                         onClick={() => handleDisconnect(connectedAcc._id)}
                         className="btn-ghost !text-xs !px-3 !py-1.5 w-full sm:w-auto"
@@ -162,10 +177,19 @@ export default function ConnectedAccountsPage() {
                     <Button 
                       onClick={() => handleConnect(p.id, p.name)}
                       disabled={connectingId === p.id}
-                      className="w-full sm:w-auto !py-2 !px-4"
+                      className={`w-full sm:w-auto !py-2.5 !px-5 relative overflow-hidden transition-all duration-500 ${connectingId === p.id ? 'btn-ghost border-emerald-500/30' : ''}`}
                     >
                       {connectingId === p.id ? (
-                        <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Connecting...</>
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                          <span className="text-emerald-400">Authenticating...</span>
+                          <motion.div 
+                            className="absolute bottom-0 left-0 h-0.5 bg-emerald-500"
+                            initial={{ width: 0 }}
+                            animate={{ width: '100%' }}
+                            transition={{ duration: 1.5 }}
+                          />
+                        </div>
                       ) : (
                         <><Link2 className="w-4 h-4" /> Connect</>
                       )}

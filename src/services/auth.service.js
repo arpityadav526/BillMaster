@@ -9,6 +9,15 @@ export const login = async (email, password) => {
   return data;
 };
 
+export const googleLogin = async (token) => {
+  const data = await api.post('/auth/google-login', { token });
+  if (data.success) {
+    localStorage.setItem('token', data.data.token);
+    localStorage.setItem('user', JSON.stringify(data.data.user));
+  }
+  return data;
+};
+
 export const register = async (userData) => {
   const data = await api.post('/auth/register', userData);
   if (data.success) {

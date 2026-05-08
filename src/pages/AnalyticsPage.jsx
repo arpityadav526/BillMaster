@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
-import { Card, Badge, Skeleton } from '../components/ui/index'
+import { Badge, Skeleton } from '../components/ui/index'
 import { categories } from '../data/mockData'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -8,21 +8,23 @@ import {
 } from 'recharts'
 import {
   TrendingUp, TrendingDown, Brain, Zap, AlertTriangle,
-  CheckCircle2, Lightbulb, Target, ArrowUpRight, ArrowDownRight
+  CheckCircle2, Lightbulb, Target, ArrowUpRight
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import * as expenseService from '../services/expense.service'
 import * as budgetService from '../services/budget.service'
 import * as analyticsService from '../services/analytics.service'
+import { useAuth } from '../context/AuthContext'
+import { getCurrencySymbol, formatAmount } from '../utils/currency'
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, currencySymbol = '$' }) => {
   if (active && payload && payload.length) {
     return (
       <div className="glass-card rounded-xl p-3 text-xs">
         <p className="text-surface-200 mb-1">{label}</p>
         {payload.map((entry, i) => (
           <p key={i} className="font-semibold" style={{ color: entry.color }}>
-            {entry.name}: ${entry.value.toLocaleString()}
+            {entry.name}: {currencySymbol}{entry.value.toLocaleString()}
           </p>
         ))}
       </div>
@@ -32,6 +34,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function AnalyticsPage() {
+  const { user } = useAuth()
+  const currencySymbol = getCurrencySymbol(user?.currency)
   const [isLoading, setIsLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('month')
   const [stats, setStats] = useState(null)
@@ -91,7 +95,6 @@ export default function AnalyticsPage() {
   const totalIncome = 6500 // TODO: Replace with real income
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(1) : 0
 
-  const severityColors = { high: 'border-rose-500/20 bg-rose-500/5', medium: 'border-amber-500/20 bg-amber-500/5', low: 'border-emerald-500/20 bg-emerald-500/5' }
   const insightIcons = { warning: AlertTriangle, success: CheckCircle2, info: Zap, tip: Lightbulb }
 
   return (
@@ -112,7 +115,7 @@ export default function AnalyticsPage() {
                 <span className="text-xs text-surface-700">Total Expenses</span>
                 <div className="p-2 rounded-lg bg-rose-500/10"><TrendingUp className="w-4 h-4 text-rose-400" /></div>
               </div>
-              <p className="text-2xl font-bold text-white">${totalExpenses.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-white">{formatAmount(totalExpenses, user?.currency)}</p>
               <p className="text-xs text-surface-700 mt-1">{stats?.currentMonth?.count || 0} transactions</p>
             </motion.div>
 
@@ -122,7 +125,7 @@ export default function AnalyticsPage() {
                 <div className="p-2 rounded-lg bg-emerald-500/10"><ArrowUpRight className="w-4 h-4 text-emerald-400" /></div>
               </div>
               <p className={`text-2xl font-bold ${(totalIncome - totalExpenses) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {(totalIncome - totalExpenses) >= 0 ? '+' : ''}${(totalIncome - totalExpenses).toLocaleString()}
+                {(totalIncome - totalExpenses) >= 0 ? '+' : ''}{formatAmount(Math.abs(totalIncome - totalExpenses), user?.currency)}
               </p>
               <p className="text-xs text-surface-700 mt-1">Income - Expenses</p>
             </motion.div>
@@ -178,7 +181,7 @@ export default function AnalyticsPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.05)" />
               <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#475569', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} />
               <Area type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={2} fill="url(#incGrad)" />
               <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#f43f5e" strokeWidth={2} fill="url(#expGrad)" />
             </AreaChart>
@@ -204,7 +207,7 @@ export default function AnalyticsPage() {
                 {catSpending.slice(0, 5).map(c => (
                   <div key={c.name} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ background: c.color }} /><span className="text-surface-200">{c.name}</span></div>
-                    <span className="text-white font-medium">${c.value.toLocaleString()}</span>
+                    <span className="text-white font-medium">{formatAmount(c.value, user?.currency)}</span>
                   </div>
                 ))}
               </div>
@@ -226,7 +229,7 @@ export default function AnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.05)" />
                 <XAxis type="number" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} />
                 <Legend />
                 <Bar dataKey="budget" name="Budget" fill="#334155" radius={[0, 4, 4, 0]} />
                 <Bar dataKey="spent" name="Spent" fill="#10b981" radius={[0, 4, 4, 0]} />
@@ -289,7 +292,7 @@ export default function AnalyticsPage() {
             <p className="text-xs text-surface-200 mb-4">Based on your current 30-day velocity</p>
             <div className="flex items-end gap-3 mb-2">
               <span className="text-3xl font-bold text-emerald-400">
-                ${totalIncome > 0 ? Math.max(0, totalIncome - (totalExpenses * 1.2)).toLocaleString(undefined, {maximumFractionDigits: 0}) : '0'}
+                {formatAmount(totalIncome > 0 ? Math.max(0, totalIncome - (totalExpenses * 1.2)) : 0, user?.currency)}
               </span>
               <span className="text-sm text-surface-700 pb-1">predicted savings</span>
             </div>

@@ -6,9 +6,10 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { motion } from 'framer-motion'
 import * as authService from '../services/auth.service'
+import { getCurrencySymbol } from '../utils/currency'
 
 export default function SettingsPage() {
-  const { user, login, updateUser } = useAuth()
+  const { user, updateUser } = useAuth()
   const { theme, setTheme } = useTheme()
   const [activeTab, setActiveTab] = useState('profile')
   const [isUploading, setIsUploading] = useState(false)
@@ -244,7 +245,7 @@ export default function SettingsPage() {
                   </div>
                   
                   <Input 
-                    label="Monthly Income Target" 
+                    label={`Monthly Income Target (${getCurrencySymbol(profileData.currency)})`} 
                     type="number"
                     value={profileData.monthlyIncomeTarget} 
                     onChange={e => setProfileData({...profileData, monthlyIncomeTarget: e.target.value})} 

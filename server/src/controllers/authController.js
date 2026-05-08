@@ -12,6 +12,11 @@ export const login = asyncHandler(async (req, res) => {
   sendSuccess(res, result, 200, 'Login successful');
 });
 
+export const googleLogin = asyncHandler(async (req, res) => {
+  const result = await authService.googleLogin(req.body.token);
+  sendSuccess(res, result, 200, 'Google login successful');
+});
+
 export const getMe = asyncHandler(async (req, res) => {
   const profile = await authService.getProfile(req.user._id);
   sendSuccess(res, profile);

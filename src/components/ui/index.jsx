@@ -137,7 +137,7 @@ export function Select({ label, options, className = '', ...props }) {
 }
 
 // ========== PROGRESS BAR ==========
-export function ProgressBar({ value, max, color = '#3b82f6', showLabel = true, size = 'md' }) {
+export function ProgressBar({ value, max, currencySymbol = '$', color = '#3b82f6', showLabel = true, size = 'md' }) {
   const percentage = Math.min((value / max) * 100, 100)
   const isOver = value > max
 
@@ -147,8 +147,8 @@ export function ProgressBar({ value, max, color = '#3b82f6', showLabel = true, s
     <div className="space-y-1">
       {showLabel && (
         <div className="flex justify-between text-xs">
-          <span className="text-surface-200">${value.toLocaleString()}</span>
-          <span className={isOver ? 'text-rose-400' : 'text-surface-700'}>${max.toLocaleString()}</span>
+          <span className="text-surface-200">{currencySymbol}{value.toLocaleString()}</span>
+          <span className={isOver ? 'text-rose-400' : 'text-surface-700'}>{currencySymbol}{max.toLocaleString()}</span>
         </div>
       )}
       <div className={`w-full ${heights[size]} rounded-full overflow-hidden bg-white/5`}>

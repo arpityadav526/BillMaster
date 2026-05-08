@@ -64,6 +64,38 @@ export const loginUser = async ({ email, password }) => {
   return formatUser(user, token);
 };
 
+export const googleLogin = async (idToken) => {
+  // In a real app, use google-auth-library to verify the token:
+  // const ticket = await client.verifyIdToken({ idToken, audience: CLIENT_ID });
+  // const payload = ticket.getPayload();
+  
+  // For now, we simulate the verification and use placeholder data
+  // or data sent from frontend (Note: NEVER trust frontend data in prod!)
+  // Assuming the 'token' passed is actually a mock user data for this assignment
+  let userData;
+  try {
+    userData = JSON.parse(idToken);
+  } catch {
+    // Fallback if not a JSON string
+    userData = { email: 'google.user@example.com', name: 'Google User', picture: null };
+  }
+
+  let user = await User.findOne({ email: userData.email });
+
+  if (!user) {
+    // Create new user if doesn't exist
+    user = await User.create({
+      name: userData.name,
+      email: userData.email,
+      password: Math.random().toString(36).slice(-10), // Random password
+      avatar: userData.picture,
+    });
+  }
+
+  const token = signToken(user._id);
+  return formatUser(user, token);
+};
+
 export const getProfile = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found', 404);

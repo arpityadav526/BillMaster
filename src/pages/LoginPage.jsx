@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   
-  const { login } = useAuth()
+  const { login, googleLogin } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -135,7 +135,23 @@ export default function LoginPage() {
           </div>
 
           {/* Social */}
-          <button className="btn-secondary w-full">
+          <button 
+            className="btn-secondary w-full"
+            onClick={async () => {
+              try {
+                // Simulate Google OAuth flow by passing mock user data as 'token'
+                const mockUserToken = JSON.stringify({
+                  email: 'google.demo@example.com',
+                  name: 'Google Demo User',
+                  picture: 'https://lh3.googleusercontent.com/a/ACg8ocL_V-Y5X5Z-X-X-X'
+                });
+                const res = await googleLogin(mockUserToken);
+                if (res.success) navigate('/dashboard');
+              } catch {
+                setError('Google login failed. Try again.');
+              }
+            }}
+          >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>

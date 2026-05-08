@@ -102,12 +102,11 @@ export default function ProfilePage() {
                 onClick={handleAvatarClick}
               >
                 {user?.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-surface-800 flex items-center justify-center">
-                    <UserIcon className="w-12 h-12 text-surface-400" />
-                  </div>
-                )}
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                ) : null}
+                <div className={`w-full h-full bg-surface-800 flex items-center justify-center ${user?.avatar ? 'hidden' : 'flex'}`}>
+                  <UserIcon className="w-12 h-12 text-surface-400" />
+                </div>
                 
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <Camera className="w-8 h-8 text-white" />

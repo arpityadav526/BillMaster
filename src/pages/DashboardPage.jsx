@@ -8,15 +8,17 @@ import * as expenseService from '../services/expense.service'
 import * as budgetService from '../services/budget.service'
 import * as notificationService from '../services/notification.service'
 import * as incomeService from '../services/income.service'
+import { getCurrencySymbol, formatAmount } from '../utils/currency'
+import { useAuth } from '../context/AuthContext'
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, currencySymbol = '$' }) => {
   if (active && payload && payload.length) {
     return (
       <div className="glass-card rounded-xl p-3 text-xs">
         <p className="text-surface-200 mb-1">{label}</p>
         {payload.map((entry, i) => (
           <p key={i} className="font-semibold" style={{ color: entry.color }}>
-            {entry.name}: ${entry.value.toLocaleString()}
+            {entry.name}: {currencySymbol}{entry.value.toLocaleString()}
           </p>
         ))}
       </div>
@@ -26,6 +28,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth()
+  const currencySymbol = getCurrencySymbol(user?.currency)
+  
   const [showAddModal, setShowAddModal] = useState(false)
   const [showSetupWizard, setShowSetupWizard] = useState(false)
   const [wizardStep, setWizardStep] = useState(1)
@@ -59,9 +64,9 @@ export default function DashboardPage() {
 
       const statsData = statsRes.data
       const formattedStats = [
-        { title: 'Total Expenses', value: `$${(statsData.currentMonth?.total || 0).toLocaleString()}`, change: `${statsData.changePercent > 0 ? '+' : ''}${statsData.changePercent}%`, trend: statsData.changePercent > 0 ? 'up' : 'down', icon: 'wallet' },
-        { title: 'Monthly Budget', value: `$${(budgetsRes.data || []).reduce((acc, b) => acc + (b.limit || 0), 0).toLocaleString()}`, change: 'Plan active', trend: 'neutral', icon: 'target' },
-        { title: 'Avg Daily', value: `$${((statsData.currentMonth?.total || 0) / 30).toFixed(2)}`, change: 'Based on month', trend: 'up', icon: 'piggy' },
+        { title: 'Total Expenses', value: formatAmount(statsData.currentMonth?.total || 0, user?.currency), change: `${statsData.changePercent > 0 ? '+' : ''}${statsData.changePercent}%`, trend: statsData.changePercent > 0 ? 'up' : 'down', icon: 'wallet' },
+        { title: 'Monthly Budget', value: formatAmount((budgetsRes.data || []).reduce((acc, b) => acc + (b.limit || 0), 0), user?.currency), change: 'Plan active', trend: 'neutral', icon: 'target' },
+        { title: 'Avg Daily', value: formatAmount((statsData.currentMonth?.total || 0) / 30, user?.currency), change: 'Based on month', trend: 'up', icon: 'piggy' },
         { title: 'Transactions', value: (statsData.currentMonth?.count || 0).toString(), change: 'This month', trend: 'neutral', icon: 'clock' },
       ]
 
@@ -101,7 +106,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     fetchDashboardData()
@@ -225,7 +230,7 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.05)" />
               <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#475569', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} />
               <Area type="monotone" dataKey="income" name="Income" stroke="#3b82f6" strokeWidth={2} fill="url(#ig)" />
               <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#8b5cf6" strokeWidth={2} fill="url(#eg)" />
             </AreaChart>
@@ -244,7 +249,7 @@ export default function DashboardPage() {
             {data.categorySpending.slice(0, 4).map(c => (
               <div key={c.name} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ background: c.color }} /><span className="text-surface-200">{c.name}</span></div>
-                <span className="text-white font-medium">${c.value.toLocaleString()}</span>
+                <span className="text-white font-medium">{currencySymbol}{c.value.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -266,7 +271,7 @@ export default function DashboardPage() {
                       <span className="text-sm text-surface-200">{catInfo ? catInfo.name : b.category}</span>
                       <span className={`text-xs font-medium ${b.spent > b.limit ? 'text-rose-400' : 'text-surface-700'}`}>{b.percentage}%</span>
                     </div>
-                    <ProgressBar value={b.spent} max={b.limit} color={catInfo ? catInfo.color : '#64748b'} />
+                    <ProgressBar value={b.spent} max={b.limit} currencySymbol={currencySymbol} color={catInfo ? catInfo.color : '#64748b'} />
                   </div>
                 )
               })
@@ -314,7 +319,7 @@ export default function DashboardPage() {
                     <td className="py-3.5 pr-4"><span className="text-sm text-white font-medium">{tx.description}</span></td>
                     <td className="py-3.5 pr-4">{getCatBadge(tx.category)}</td>
                     <td className="py-3.5 pr-4"><span className="text-sm text-surface-200">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></td>
-                    <td className="py-3.5 pr-4 text-right"><span className="text-sm font-semibold text-white">-${tx.amount.toFixed(2)}</span></td>
+                    <td className="py-3.5 pr-4 text-right"><span className="text-sm font-semibold text-white">-{formatAmount(tx.amount, user?.currency)}</span></td>
                     <td className="py-3.5 text-right"><Badge variant={tx.status === 'completed' ? 'green' : 'amber'}>{tx.status}</Badge></td>
                   </tr>
                 ))
