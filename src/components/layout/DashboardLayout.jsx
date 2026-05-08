@@ -37,26 +37,8 @@ function BillMasterLogo({ collapsed }) {
 }
 
 // ========== NOTIFICATION PANEL ==========
-function NotificationPanel({ isOpen, onClose }) {
-  const [notifications, setNotifications] = useState([])
-  const [loading, setLoading] = useState(true)
+function NotificationPanel({ isOpen, onClose, notifications, setNotifications, loading }) {
   const panelRef = useRef(null)
-
-  useEffect(() => {
-    if (!isOpen) return
-    const fetchNotifications = async () => {
-      setLoading(true)
-      try {
-        const res = await notificationService.getNotifications()
-        setNotifications(res.data || [])
-      } catch {
-        setNotifications([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchNotifications()
-  }, [isOpen])
 
   // Close on outside click
   useEffect(() => {
@@ -91,9 +73,22 @@ function NotificationPanel({ isOpen, onClose }) {
           <div className="p-4 border-b border-white/5">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Notifications</h3>
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/5 text-surface-200 cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {notifications.some(n => !n.read) && (
+                  <button 
+                    onClick={async () => {
+                      await notificationService.markAllRead();
+                      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                    }}
+                    className="text-[10px] font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/5 text-surface-200 cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
           <div className="max-h-80 overflow-y-auto">
@@ -109,10 +104,13 @@ function NotificationPanel({ isOpen, onClose }) {
                 {notifications.map((n) => (
                   <div key={n._id} className="flex gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer">
                     <div className="flex-shrink-0 mt-0.5">{insightIcons[n.type] || insightIcons.info}</div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{n.title}</p>
-                      <p className="text-xs text-surface-200 line-clamp-2">{n.description}</p>
-                      <p className="text-xs text-surface-700 mt-1">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`text-sm font-medium truncate ${n.read ? 'text-surface-400' : 'text-white'}`}>{n.title}</p>
+                        {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />}
+                      </div>
+                      <p className={`text-xs line-clamp-2 ${n.read ? 'text-surface-700' : 'text-surface-200'}`}>{n.description}</p>
+                      <p className="text-[10px] text-surface-700 mt-1">
                         {new Date(n.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </p>
                     </div>
@@ -236,9 +234,32 @@ export function TopNavbar({ onAddExpense }) {
   const { user } = useAuth()
   const [searchFocused, setSearchFocused] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notifLoading, setNotifLoading] = useState(true)
+
+  const fetchNotifications = useCallback(async () => {
+    setNotifLoading(true)
+    try {
+      const res = await notificationService.getNotifications()
+      setNotifications(res.data || [])
+    } catch {
+      setNotifications([])
+    } finally {
+      setNotifLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchNotifications()
+    // Refresh every 2 minutes
+    const interval = setInterval(fetchNotifications, 120000)
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
 
   const toggleNotif = useCallback(() => setNotifOpen(prev => !prev), [])
   const closeNotif = useCallback(() => setNotifOpen(false), [])
+
+  const unreadCount = notifications.filter(n => !n.read).length
 
   return (
     <header className="sticky top-0 z-30 glass border-b border-white/5">
@@ -272,9 +293,17 @@ export function TopNavbar({ onAddExpense }) {
               className="relative p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
             >
               <Bell className="w-5 h-5 text-surface-200" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              )}
             </button>
-            <NotificationPanel isOpen={notifOpen} onClose={closeNotif} />
+            <NotificationPanel 
+              isOpen={notifOpen} 
+              onClose={closeNotif} 
+              notifications={notifications}
+              setNotifications={setNotifications}
+              loading={notifLoading}
+            />
           </div>
 
           <Link to="/settings" className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center cursor-pointer overflow-hidden ring-offset-2 ring-offset-surface-950 transition-all hover:ring-2 hover:ring-emerald-500/50">

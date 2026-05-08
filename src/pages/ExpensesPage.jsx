@@ -22,6 +22,7 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([])
   const [pagination, setPagination] = useState({ page: 1, limit: 8, total: 0, pages: 1 })
   const perPage = 8
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const fetchExpenses = useCallback(async () => {
     setIsLoading(true)
@@ -53,20 +54,27 @@ export default function ExpensesPage() {
     return () => clearTimeout(timer)
   }, [search, currentPage])
 
-  const handleAdd = async (e) => { 
+  const handleAdd = async (e) => {
     e.preventDefault()
+    if (isSubmitting) return
+    setIsSubmitting(true)
     try {
       await expenseService.createExpense(newExpense)
       setShowAddModal(false)
       setNewExpense({ description: '', amount: '', category: 'food', date: new Date().toISOString().split('T')[0] })
       fetchExpenses()
     } catch (err) {
-      alert(err.message)
+      if (err.message?.includes('429')) alert('Slow down! Too many requests.')
+      else alert(err.message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleEdit = async (e) => { 
     e.preventDefault()
+    if (isSubmitting) return
+    setIsSubmitting(true)
     try {
       await expenseService.updateExpense(selectedExpense._id, selectedExpense)
       setShowEditModal(false)
@@ -74,6 +82,8 @@ export default function ExpensesPage() {
       fetchExpenses()
     } catch (err) {
       alert(err.message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

@@ -48,6 +48,7 @@ export default function DashboardPage() {
     incomes: [],
     totalIncome: 0
   })
+  const [isAdding, setIsAdding] = useState(false)
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true)
@@ -114,13 +115,22 @@ export default function DashboardPage() {
 
   const handleAddExpense = async (e) => {
     e.preventDefault()
+    if (isAdding) return
+    
+    setIsAdding(true)
     try {
       await expenseService.createExpense(newExpense)
       setShowAddModal(false)
       setNewExpense({ description: '', amount: '', category: 'food', date: new Date().toISOString().split('T')[0], paymentMethod: 'credit_card', notes: '' })
-      fetchDashboardData()
+      await fetchDashboardData()
     } catch (err) {
-      alert(err.message)
+      if (err.message?.includes('429') || err.message?.toLowerCase().includes('too many')) {
+        alert('You are adding expenses too quickly. Please wait a moment and try again.')
+      } else {
+        alert(err.message || 'Failed to add expense')
+      }
+    } finally {
+      setIsAdding(false)
     }
   }
 
@@ -358,7 +368,9 @@ export default function DashboardPage() {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="secondary" type="button" onClick={() => setShowAddModal(false)}>Cancel</Button>
-            <Button type="submit"><Plus className="w-4 h-4" /> Add Expense</Button>
+            <Button type="submit" isLoading={isAdding} disabled={isAdding}>
+              {isAdding ? 'Adding...' : <><Plus className="w-4 h-4" /> Add Expense</>}
+            </Button>
           </div>
         </form>
       </Modal>

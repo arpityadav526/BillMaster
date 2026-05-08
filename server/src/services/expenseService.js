@@ -1,8 +1,59 @@
 import Expense from '../models/Expense.js';
+import Budget from '../models/Budget.js';
 import AppError from '../utils/AppError.js';
+import { createNotification } from './notificationService.js';
+import { sendBudgetExceededAlert } from '../utils/mailer.js';
+import User from '../models/User.js';
 
 export const createExpense = async (userId, data) => {
   const expense = await Expense.create({ ...data, user: userId });
+  
+  // Budget Check logic
+  try {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    
+    const budget = await Budget.findOne({ user: userId, category: data.category, month, year });
+    
+    if (budget) {
+      // Calculate total spent in this category for the month
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0, 23, 59, 59);
+      
+      const spending = await Expense.aggregate([
+        { $match: { user: userId, category: data.category, date: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]);
+      
+      const totalSpent = spending[0]?.total || 0;
+      
+      if (totalSpent > budget.limit) {
+        // Trigger notification
+        await createNotification(userId, {
+          type: 'warning',
+          title: 'Budget Exceeded',
+          description: `You have spent ${totalSpent} in ${data.category}, which exceeds your budget of ${budget.limit}.`
+        });
+        
+        // Send Email
+        const user = await User.findById(userId);
+        if (user && user.email) {
+          await sendBudgetExceededAlert(user.email, user.name, data.category, totalSpent, budget.limit);
+        }
+      } else if (totalSpent > budget.limit * 0.8) {
+        // Warning at 80%
+        await createNotification(userId, {
+          type: 'info',
+          title: 'Budget Warning',
+          description: `You have used ${Math.round((totalSpent/budget.limit)*100)}% of your ${data.category} budget.`
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error in budget check:', error);
+  }
+
   return expense;
 };
 
