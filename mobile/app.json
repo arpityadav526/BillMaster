@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "BillMaster",
+    "slug": "billmaster-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/logo.png",
+    "scheme": "billmaster",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/images/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#020617"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.billmaster.mobile",
+      "backgroundColor": "#020617"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#020617"
+      },
+      "package": "com.billmaster.mobile"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow BillMaster to access your photos for receipt scanning."
+        }
+      ]
+    ]
+  }
+}
