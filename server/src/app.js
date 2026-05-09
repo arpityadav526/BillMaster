@@ -73,7 +73,6 @@ app.use('/api/ml', async (req, res) => {
     });
     res.status(response.status).json(response.data);
   } catch (error) {
-    console.error('ML Service proxy error:', error.message);
     res.status(500).json({ success: false, message: 'ML Service unavailable' });
   }
 });

@@ -51,7 +51,7 @@ export const createExpense = async (userId, data) => {
       }
     }
   } catch (error) {
-    console.error('Error in budget check:', error);
+    // Silent catch for budget check errors
   }
 
   return expense;

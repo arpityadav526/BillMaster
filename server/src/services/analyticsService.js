@@ -70,7 +70,6 @@ export const getInsights = async (userId) => {
     
     return insights;
   } catch (err) {
-    console.error('Failed to get ML insights', err.message);
     return []; // Gracefully fail if ML service is down
   }
 };

@@ -17,15 +17,15 @@ class SocketService {
       });
 
       this.socket.on('connect', () => {
-        console.log('✓ BillMaster real-time connected');
+        // Connection established
       });
 
-      this.socket.on('disconnect', (reason) => {
-        console.log('WebSocket disconnected:', reason);
+      this.socket.on('disconnect', () => {
+        // Handle disconnect
       });
 
-      this.socket.on('connect_error', (err) => {
-        console.warn('WebSocket connection error (non-fatal):', err.message);
+      this.socket.on('connect_error', () => {
+        // Handle connection error
       });
     }
   }

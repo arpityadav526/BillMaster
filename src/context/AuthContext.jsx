@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user', JSON.stringify(res.data));
           }
         } catch (error) {
-          console.error('Auth initialization error:', error);
           // Only clear on actual auth failure, not network errors
           if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
             localStorage.removeItem('user');
