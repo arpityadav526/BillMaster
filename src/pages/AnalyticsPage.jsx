@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { Badge, Skeleton } from '../components/ui/index'
 import { categories } from '../data/mockData'
@@ -8,12 +8,13 @@ import {
 } from 'recharts'
 import {
   TrendingUp, TrendingDown, Brain, Zap, AlertTriangle,
-  CheckCircle2, Lightbulb, Target, ArrowUpRight
+  CheckCircle2, Lightbulb, Target, ArrowUpRight, Send, Bot, User as UserIcon, RefreshCw
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import * as expenseService from '../services/expense.service'
 import * as budgetService from '../services/budget.service'
 import * as analyticsService from '../services/analytics.service'
+import * as incomeService from '../services/income.service'
 import { useAuth } from '../context/AuthContext'
 import { getCurrencySymbol, formatAmount } from '../utils/currency'
 
@@ -33,6 +34,215 @@ const CustomTooltip = ({ active, payload, label, currencySymbol = '$' }) => {
   return null
 }
 
+// ── AI Chat Widget ──────────────────────────────────────────────────────────
+function AIChatWidget() {
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: "Hi! I'm your AI financial advisor. Ask me anything about your spending, savings, or budget. 💡" }
+  ])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const bottomRef = useRef(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const send = async (e) => {
+    e.preventDefault()
+    const q = input.trim()
+    if (!q || isLoading) return
+    setInput('')
+    setMessages(prev => [...prev, { role: 'user', text: q }])
+    setIsLoading(true)
+    try {
+      const res = await analyticsService.chatWithAI(q)
+      setMessages(prev => [...prev, { role: 'ai', text: res.answer || 'Sorry, I could not answer that.' }])
+    } catch {
+      setMessages(prev => [...prev, { role: 'ai', text: 'The AI service is currently unavailable. Make sure the ML service is running.' }])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const QUICK = ['How much did I spend this month?', "What's my savings rate?", 'Show my spending trend', 'Any recurring charges?']
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}
+      className="card gradient-border">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-2 rounded-xl bg-accent-400/10 border border-accent-400/20">
+          <Brain className="w-5 h-5 text-accent-400" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-white">AI Financial Advisor</h3>
+          <p className="text-xs text-surface-700">Ask anything about your finances</p>
+        </div>
+        <Badge variant="purple" className="ml-auto">AI Chat</Badge>
+      </div>
+
+      {/* Quick prompts */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {QUICK.map(q => (
+          <button key={q} onClick={() => { setInput(q); }}
+            className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-surface-200 hover:bg-primary-500/10 hover:border-primary-500/30 hover:text-primary-400 transition-all cursor-pointer">
+            {q}
+          </button>
+        ))}
+      </div>
+
+      {/* Messages */}
+      <div className="h-48 overflow-y-auto space-y-3 mb-4 pr-1">
+        {messages.map((m, i) => (
+          <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {m.role === 'ai' && (
+              <div className="w-7 h-7 rounded-full bg-accent-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Bot className="w-4 h-4 text-accent-400" />
+              </div>
+            )}
+            <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-line ${
+              m.role === 'user'
+                ? 'bg-primary-500/20 border border-primary-500/30 text-white rounded-tr-sm'
+                : 'bg-white/5 border border-white/10 text-surface-200 rounded-tl-sm'
+            }`}>
+              {m.text}
+            </div>
+            {m.role === 'user' && (
+              <div className="w-7 h-7 rounded-full bg-primary-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <UserIcon className="w-4 h-4 text-primary-400" />
+              </div>
+            )}
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex gap-2 justify-start">
+            <div className="w-7 h-7 rounded-full bg-accent-400/20 flex items-center justify-center flex-shrink-0">
+              <Bot className="w-4 h-4 text-accent-400" />
+            </div>
+            <div className="px-4 py-2.5 rounded-2xl rounded-tl-sm bg-white/5 border border-white/10">
+              <div className="flex gap-1">
+                {[0,1,2].map(i => (
+                  <div key={i} className="w-1.5 h-1.5 rounded-full bg-accent-400/60 animate-bounce" style={{ animationDelay: `${i*150}ms` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <form onSubmit={send} className="flex gap-2">
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Ask about your finances..."
+          className="input-field flex-1 py-2.5 text-xs"
+          disabled={isLoading}
+        />
+        <button type="submit" disabled={isLoading || !input.trim()}
+          className="p-2.5 rounded-xl bg-primary-500/20 border border-primary-500/30 text-primary-400 hover:bg-primary-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+          <Send className="w-4 h-4" />
+        </button>
+      </form>
+    </motion.div>
+  )
+}
+
+// ── Savings Prediction Widget ───────────────────────────────────────────────
+function SavingsPredictionWidget({ currencySymbol, currency }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  const fetch = useCallback(async () => {
+    setLoading(true)
+    setError(false)
+    try {
+      const res = await analyticsService.getSavingsPrediction()
+      setData(res.data || res)
+    } catch {
+      setError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetch() }, [fetch])
+
+  const isOnTrack = data?.status === 'on_track'
+  const savingsPct = Math.max(0, Math.min(100, data?.savings_rate_pct ?? 0))
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
+      className="card border-primary-500/20 bg-primary-500/5 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 blur-2xl rounded-full" />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-lg font-semibold text-white">Savings Projection</h3>
+          <button onClick={fetch} className="p-1.5 rounded-lg text-surface-700 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+        <p className="text-xs text-surface-200 mb-4">Based on your current 30-day velocity</p>
+
+        {loading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-40" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ) : error ? (
+          <p className="text-xs text-rose-400 italic">ML service unavailable — start the Python service to see predictions.</p>
+        ) : (
+          <>
+            <div className="flex items-end gap-3 mb-1">
+              <span className={`text-3xl font-bold ${isOnTrack ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {formatAmount(Math.max(0, (data?.monthlySalary || 0) - (data?.projected_spend || 0)), currency)}
+              </span>
+              <span className="text-sm text-surface-700 pb-1">predicted savings</span>
+            </div>
+
+            <div className="flex items-center gap-2 mb-4">
+              <Badge variant={isOnTrack ? 'green' : 'rose'}>
+                {isOnTrack ? '✓ On Track' : '⚠ At Risk'}
+              </Badge>
+              <span className="text-xs text-surface-700">{data?.days_remaining || 0} days remaining</span>
+            </div>
+
+            <div className="w-full h-2 bg-surface-900 rounded-full overflow-hidden mb-1">
+              <div
+                className={`h-full rounded-full transition-all duration-1000 ${isOnTrack ? 'bg-gradient-to-r from-emerald-500 to-primary-500' : 'bg-gradient-to-r from-rose-500 to-amber-500'}`}
+                style={{ width: `${savingsPct}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-surface-700 mb-3">{savingsPct.toFixed(1)}% savings rate projected</p>
+
+            {data?.advice && (
+              <p className="text-xs text-surface-200 leading-relaxed bg-white/5 rounded-xl p-3 border border-white/10">
+                {data.advice}
+              </p>
+            )}
+
+            {data?.daily_run_rate > 0 && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <div className="p-2 rounded-lg bg-white/5 text-center">
+                  <p className="text-[10px] text-surface-700 uppercase tracking-wider">Daily Rate</p>
+                  <p className="text-sm font-bold text-white">{formatAmount(data.daily_run_rate, currency)}</p>
+                </div>
+                <div className="p-2 rounded-lg bg-white/5 text-center">
+                  <p className="text-[10px] text-surface-700 uppercase tracking-wider">Projected Spend</p>
+                  <p className="text-sm font-bold text-white">{formatAmount(data.projected_spend, currency)}</p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Main Page ───────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
   const { user } = useAuth()
   const currencySymbol = getCurrencySymbol(user?.currency)
@@ -41,74 +251,71 @@ export default function AnalyticsPage() {
   const [stats, setStats] = useState(null)
   const [budgets, setBudgets] = useState([])
   const [insights, setInsights] = useState([])
+  const [totalIncome, setTotalIncome] = useState(0)
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
     try {
       const now = new Date()
-      const [statsRes, budgetsRes, insightsRes] = await Promise.all([
+      const [statsRes, budgetsRes, insightsRes, incomeStatsRes] = await Promise.all([
         expenseService.getStats(),
         budgetService.getBudgets(now.getMonth() + 1, now.getFullYear()),
-        analyticsService.getInsights()
+        analyticsService.getInsights(),
+        incomeService.getStats(),
       ])
       setStats(statsRes.data)
-      setBudgets(budgetsRes.data)
-      setInsights(insightsRes.data || [])
+      setBudgets(budgetsRes.data || [])
+      setInsights(Array.isArray(insightsRes) ? insightsRes : (insightsRes?.data || []))
+      setTotalIncome(incomeStatsRes.data?.currentMonthTotal || user?.monthlySalary || 0)
     } catch (err) {
       console.error('Failed to fetch analytics:', err)
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [user])
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
+  useEffect(() => { fetchData() }, [fetchData])
 
   const trendData = stats?.monthlyTrend?.map(t => ({
     month: new Date(t._id.year, t._id.month - 1).toLocaleString('default', { month: 'short' }),
     expenses: t.total,
-    income: 6500 // TODO: Replace with real income data once Income model is built
+    income: totalIncome > 0 ? totalIncome : 0,
   })) || []
 
   const catSpending = stats?.byCategory?.map(c => {
     const catInfo = categories.find(cat => cat.id === c._id)
-    return {
-      name: catInfo ? catInfo.name : c._id,
-      value: c.total,
-      count: c.count,
-      color: catInfo ? catInfo.color : '#64748b'
-    }
+    return { name: catInfo ? catInfo.name : c._id, value: c.total, count: c.count, color: catInfo ? catInfo.color : '#64748b' }
   }) || []
 
   const budgetComparison = budgets.map(b => {
     const catInfo = categories.find(c => c.id === b.category)
-    return {
-      name: catInfo?.name || b.category,
-      budget: b.limit,
-      spent: b.spent,
-      color: catInfo?.color || '#64748b'
-    }
+    return { name: catInfo?.name || b.category, budget: b.limit, spent: b.spent, color: catInfo?.color || '#64748b' }
   })
 
   const totalExpenses = stats?.currentMonth?.total || 0
-  const totalIncome = 6500 // TODO: Replace with real income
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(1) : 0
 
   const insightIcons = { warning: AlertTriangle, success: CheckCircle2, info: Zap, tip: Lightbulb }
+  const insightColors = {
+    warning: 'border-amber-500/50 bg-amber-500/10',
+    success: 'border-emerald-500/50 bg-emerald-500/10',
+    info: 'border-primary-500/30 bg-primary-500/5',
+    tip: 'border-accent-400/30 bg-accent-400/5',
+  }
+  const insightIconColors = {
+    warning: 'text-amber-400', success: 'text-emerald-400', info: 'text-primary-400', tip: 'text-accent-400',
+  }
 
   return (
     <DashboardLayout>
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">Analytics</h1>
-        <p className="text-sm text-surface-700">Deep insights into your financial patterns</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">Analytics & Insights</h1>
+        <p className="text-sm text-surface-700">AI-powered breakdown of your financial patterns</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {isLoading ? (
-          Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-28" />)
-        ) : (
+        {isLoading ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-28" />) : (
           <>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }} className="card">
               <div className="flex items-center justify-between mb-3">
@@ -127,7 +334,7 @@ export default function AnalyticsPage() {
               <p className={`text-2xl font-bold ${(totalIncome - totalExpenses) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {(totalIncome - totalExpenses) >= 0 ? '+' : ''}{formatAmount(Math.abs(totalIncome - totalExpenses), user?.currency)}
               </p>
-              <p className="text-xs text-surface-700 mt-1">Income - Expenses</p>
+              <p className="text-xs text-surface-700 mt-1">Income − Expenses</p>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card">
@@ -141,7 +348,7 @@ export default function AnalyticsPage() {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-surface-700">Change vs Last Month</span>
+                <span className="text-xs text-surface-700">vs Last Month</span>
                 <div className={`p-2 rounded-lg ${stats?.changePercent > 0 ? 'bg-rose-500/10' : 'bg-emerald-500/10'}`}>
                   {stats?.changePercent > 0 ? <TrendingUp className="w-4 h-4 text-rose-400" /> : <TrendingDown className="w-4 h-4 text-emerald-400" />}
                 </div>
@@ -157,7 +364,6 @@ export default function AnalyticsPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Spending Trend Chart */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -188,7 +394,6 @@ export default function AnalyticsPage() {
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Category Pie Chart */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card">
           <h3 className="text-lg font-semibold text-white mb-2">Category Breakdown</h3>
           <p className="text-xs text-surface-700 mb-4">This month's spending</p>
@@ -216,13 +421,12 @@ export default function AnalyticsPage() {
         </motion.div>
       </div>
 
-      {/* Budget Comparison + ML Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Budget vs Actual */}
+      {/* Budget + ML Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 items-start">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="card">
           <h3 className="text-lg font-semibold text-white mb-6">Budget vs Actual</h3>
           {budgetComparison.length === 0 ? (
-            <div className="py-12 text-center text-sm text-surface-700 italic">No budgets set for this month</div>
+            <div className="py-8 text-center text-sm text-surface-700 italic">No budgets set for this month</div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={budgetComparison} layout="vertical" margin={{ top: 0, right: 10, left: 60, bottom: 0 }}>
@@ -238,71 +442,57 @@ export default function AnalyticsPage() {
           )}
         </motion.div>
 
-        {/* ML Insights & Predictions */}
         <div className="space-y-6">
+          {/* ML Insights Panel */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="card gradient-border">
             <div className="flex items-center gap-2 mb-6">
               <Brain className="w-5 h-5 text-accent-400" />
               <h3 className="text-lg font-semibold text-white">Smart Insights</h3>
               <Badge variant="purple">AI</Badge>
+              <button onClick={fetchData} className="ml-auto p-1.5 rounded-lg text-surface-700 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
             {isLoading ? (
-              <div className="space-y-3">
-                {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)}
-              </div>
+              <div className="space-y-3">{Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)}</div>
             ) : insights.length === 0 ? (
-              <div className="py-12 text-center text-sm text-surface-700 italic">Add some expenses to get personalized insights</div>
+              <div className="py-8 text-center">
+                <Brain className="w-10 h-10 text-surface-700 mx-auto mb-3" />
+                <p className="text-sm text-surface-700 italic">Add some expenses to get personalized AI insights</p>
+                <p className="text-xs text-surface-700 mt-1">Also ensure the ML service is running on port 8000</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {insights.map((insight, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.8 + i * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    className={`p-4 rounded-xl border relative overflow-hidden transition-all duration-300 ${
-                      insight.type === 'warning' ? 'border-amber-500/50 bg-amber-500/10 glow-purple' :
-                      insight.type === 'success' ? 'border-emerald-500/50 bg-emerald-500/10 glow-blue' :
-                      'border-primary-500/30 bg-primary-500/5'
-                    }`}
-                  >
-                    <div className="flex gap-3 relative z-10">
-                      <div className="flex-shrink-0 mt-0.5">
-                        {(() => {
-                          const Icon = insightIcons[insight.type] || Zap;
-                          return <Icon className={`w-5 h-5 ${insight.type === 'warning' ? 'text-amber-400' : insight.type === 'success' ? 'text-emerald-400' : insight.type === 'tip' ? 'text-accent-400' : 'text-primary-400'}`} />
-                        })()}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-white mb-1 tracking-wide">{insight.title}</h4>
-                        <p className="text-xs text-surface-200 leading-relaxed">{insight.description}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                <AnimatePresence>
+                  {insights.map((insight, i) => {
+                    const Icon = insightIcons[insight.type] || Zap
+                    return (
+                      <motion.div key={i}
+                        initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
+                        whileHover={{ scale: 1.02 }}
+                        className={`p-4 rounded-xl border transition-all duration-300 ${insightColors[insight.type] || insightColors.info}`}>
+                        <div className="flex gap-3">
+                          <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${insightIconColors[insight.type] || 'text-primary-400'}`} />
+                          <div>
+                            <h4 className="text-sm font-bold text-white mb-1">{insight.title}</h4>
+                            <p className="text-xs text-surface-200 leading-relaxed">{insight.description}</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
               </div>
             )}
           </motion.div>
 
-          {/* Savings Prediction Widget */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="card border-primary-500/20 bg-primary-500/5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 blur-2xl rounded-full" />
-            <h3 className="text-lg font-semibold text-white mb-2">Savings Projection</h3>
-            <p className="text-xs text-surface-200 mb-4">Based on your current 30-day velocity</p>
-            <div className="flex items-end gap-3 mb-2">
-              <span className="text-3xl font-bold text-emerald-400">
-                {formatAmount(totalIncome > 0 ? Math.max(0, totalIncome - (totalExpenses * 1.2)) : 0, user?.currency)}
-              </span>
-              <span className="text-sm text-surface-700 pb-1">predicted savings</span>
-            </div>
-            <div className="w-full h-2 bg-surface-900 rounded-full mt-4 overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-emerald-500 to-primary-500 w-3/4 rounded-full" />
-            </div>
-            <p className="text-[10px] text-surface-700 mt-2">You are on track to save 75% of your target this month.</p>
-          </motion.div>
+          {/* Live Savings Prediction */}
+          <SavingsPredictionWidget currencySymbol={currencySymbol} currency={user?.currency} />
         </div>
       </div>
+
+      {/* AI Chat */}
+      <AIChatWidget />
     </DashboardLayout>
   )
 }

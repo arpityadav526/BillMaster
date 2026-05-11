@@ -7,6 +7,7 @@ import { Plus, ArrowUpRight, Lightbulb, AlertTriangle, CheckCircle2, Info } from
 import * as expenseService from '../services/expense.service'
 import * as budgetService from '../services/budget.service'
 import * as notificationService from '../services/notification.service'
+import * as analyticsService from '../services/analytics.service'
 import * as incomeService from '../services/income.service'
 import { getCurrencySymbol, formatAmount } from '../utils/currency'
 import { useAuth } from '../context/AuthContext'
@@ -54,13 +55,14 @@ export default function DashboardPage() {
     setIsLoading(true)
     try {
       const now = new Date()
-      const [statsRes, txRes, budgetsRes, notificationsRes, incomeRes, incomeStatsRes] = await Promise.all([
+      const [statsRes, txRes, budgetsRes, notificationsRes, incomeRes, incomeStatsRes, mlInsightsRes] = await Promise.all([
         expenseService.getStats(),
         expenseService.getExpenses({ limit: 8 }),
         budgetService.getBudgets(now.getMonth() + 1, now.getFullYear()),
         notificationService.getNotifications(),
         incomeService.getIncomes({ limit: 10 }),
-        incomeService.getStats()
+        incomeService.getStats(),
+        analyticsService.getInsights().catch(() => [])  // graceful fallback if ML is down
       ])
 
       const statsData = statsRes.data
@@ -120,13 +122,18 @@ export default function DashboardPage() {
         }
       })
 
+      // ML insights: use direct ML results; fall back to DB notifications if ML is down
+      const mlInsights = Array.isArray(mlInsightsRes) ? mlInsightsRes : (mlInsightsRes?.data || [])
+      const dbNotifications = notificationsRes.data || []
+      const displayInsights = mlInsights.length > 0 ? mlInsights : dbNotifications
+
       setData({
         stats: formattedStats,
         monthlyTrend: trendData,
         categorySpending: catSpending,
         budgets: budgetsRes.data || [],
         transactions: txRes.data || [],
-        insights: notificationsRes.data || [],
+        insights: displayInsights,
         incomes: incomeRes.data?.incomes || [],
         totalIncome
       })

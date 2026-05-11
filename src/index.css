@@ -33,6 +33,7 @@
   --color-surface-100: #f1f5f9;
   --color-surface-200: #e2e8f0;
   --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
   --color-surface-700: #334155;
   --color-surface-800: #1e293b;
   --color-surface-850: #172033;
@@ -202,10 +203,66 @@
     box-shadow: 0 0 30px rgba(96, 165, 250, 0.15), 0 0 80px rgba(96, 165, 250, 0.05);
   }
 
+  /* gradient-border — used in AnalyticsPage AI panel */
+  .gradient-border {
+    position: relative;
+    border: 1px solid transparent;
+    background-image: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7)),
+                       linear-gradient(135deg, rgba(16, 185, 129, 0.5), rgba(96, 165, 250, 0.3), rgba(139, 92, 246, 0.4));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+
   @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
   }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slide-down {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+    50%       { box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease forwards;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.4s ease forwards;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.25s ease forwards;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+}
 
 /* ========== COMPONENTS ========== */
 @layer components {
