@@ -177,7 +177,7 @@ export function Skeleton({ className = '' }) {
 }
 
 // ========== STAT CARD ==========
-export function StatCard({ title, value, change, trend, icon, delay = 0 }) {
+export function StatCard({ title, value, change, trend, icon, delay = 0, isGlass = true }) {
   const trendColors = {
     up: 'text-emerald-400',
     down: 'text-rose-400',
@@ -201,7 +201,7 @@ export function StatCard({ title, value, change, trend, icon, delay = 0 }) {
     piggy: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-emerald-400">
         <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2" />
-        <path d="M2 9.5a1 1 0 100 3" />
+        <circle cx="12" cy="12" r="1" />
       </svg>
     ),
     clock: (
@@ -210,24 +210,42 @@ export function StatCard({ title, value, change, trend, icon, delay = 0 }) {
         <path d="M12 6v6l4 2" />
       </svg>
     ),
+    'trending-down': (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-rose-400">
+        <path d="M23 18l-9.5-9.5-5 5L1 6" />
+        <polyline points="17 18 23 18 23 12" />
+      </svg>
+    ),
   }
 
   return (
     <motion.div 
-      className="card group" 
+      className={`${isGlass ? 'glass-card' : 'card'} p-6 relative overflow-hidden group`} 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay / 1000, type: 'spring', stiffness: 200, damping: 20 }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ y: -8, transition: { duration: 0.3, ease: 'easeOut' } }}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 rounded-xl bg-white/5 group-hover:bg-white/8 transition-colors">
-          {icons[icon]}
+      {/* Decorative inner glow */}
+      <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40 
+        ${icon === 'wallet' || icon === 'piggy' ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+      />
+      
+      <div className="flex items-start justify-between mb-6 relative z-10">
+        <div className="p-3.5 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-all duration-300 border border-white/5 shadow-inner">
+          {icons[icon] || icons['wallet']}
         </div>
-        <span className={`text-xs font-medium ${trendColors[trend]}`}>{change}</span>
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest ${trendColors[trend]}`}>
+          {trend === 'up' && <span>↑</span>}
+          {trend === 'down' && <span>↓</span>}
+          {change}
+        </div>
       </div>
-      <p className="text-sm text-surface-200 mb-1">{title}</p>
-      <p className="text-2xl font-bold text-white">{value}</p>
+      
+      <div className="relative z-10">
+        <p className="text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">{title}</p>
+        <p className="text-3xl font-bold text-white tracking-tight tabular-nums">{value}</p>
+      </div>
     </motion.div>
   )
 }

@@ -326,17 +326,22 @@ export function DashboardLayout({ children, onAddExpense }) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen bg-surface-950">
-      <ParticleBackground />
+    <div className="min-h-screen bg-[#020617] relative overflow-hidden">
+      {/* Premium Background Effects */}
+      <div className="noise-bg" />
+      <div className="blob top-[-10%] left-[-10%] bg-emerald-500/20" />
+      <div className="blob bottom-[-10%] right-[-10%] bg-blue-500/20" style={{ animationDelay: '-10s' }} />
+      <div className="blob top-[30%] right-[20%] w-64 h-64 bg-purple-500/10" style={{ animationDelay: '-5s' }} />
+      
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <div className={`transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-60'}`}>
+      <div className={`transition-all duration-500 ease-in-out ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-60'}`}>
         <TopNavbar onAddExpense={onAddExpense} />
         <main className="p-4 lg:p-8 relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
             {children}
           </motion.div>

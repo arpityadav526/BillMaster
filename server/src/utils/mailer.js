@@ -107,3 +107,76 @@ export const sendImportConfirmation = async (userEmail, userName, count, provide
   `;
   return sendEmail(userEmail, subject, 'Import successful.', html);
 };
+export const sendWeeklyInsightReport = async (userEmail, userName, data) => {
+  const subject = '📊 Your Weekly BillMaster Insight Report';
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f8fafc; }
+        .card { background: white; border-radius: 24px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0; }
+        .header { text-align: center; margin-bottom: 32px; }
+        .logo { color: #10b981; font-size: 28px; font-weight: bold; margin-bottom: 8px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+        .stat-box { background: #f1f5f9; padding: 20px; border-radius: 16px; text-align: center; }
+        .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .stat-value { font-size: 20px; font-weight: bold; color: #0f172a; }
+        .advice-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 24px; border-radius: 20px; margin-bottom: 32px; }
+        .advice-title { font-weight: bold; margin-bottom: 8px; font-size: 16px; display: flex; items-center: center; gap: 8px; }
+        .advice-text { font-size: 14px; line-height: 1.6; opacity: 0.9; }
+        .category-list { margin-bottom: 32px; }
+        .category-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .footer { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 32px; }
+        .btn { display: inline-block; background: #0f172a; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 600; margin-top: 20px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">BillMaster</div>
+          <p style="color: #64748b; margin: 0;">Weekly Financial Insights for ${userName}</p>
+        </div>
+        
+        <div class="card">
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-label">Total Spent (7d)</div>
+              <div class="stat-value">$${data.totalSpent.toLocaleString()}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Projected EOM</div>
+              <div class="stat-value">$${data.projectedSpend.toLocaleString()}</div>
+            </div>
+          </div>
+
+          <div class="advice-card">
+            <div class="advice-title">💡 ML Insight: ${data.status === 'on_track' ? 'On Track' : 'Action Required'}</div>
+            <div class="advice-text">${data.advice}</div>
+          </div>
+
+          <div class="category-list">
+            <h3 style="font-size: 14px; color: #0f172a; margin-bottom: 16px;">Top Spending Categories</h3>
+            ${data.categories.map(cat => `
+              <div class="category-item">
+                <span style="color: #64748b;">${cat.name}</span>
+                <span style="font-weight: 600;">$${cat.value.toLocaleString()}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="text-align: center;">
+            <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard" class="btn">View Full Dashboard</a>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>You received this email because you have weekly notifications enabled.</p>
+          <p>&copy; 2026 BillMaster Inc. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  return sendEmail(userEmail, subject, `Your weekly insights are ready! ${data.advice}`, html);
+};

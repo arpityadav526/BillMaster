@@ -25,24 +25,25 @@ const formatUser = (user, token) => ({
     name: user.name,
     email: user.email,
     currency: user.currency,
-    monthlyIncome: user.monthlyIncome,
-    monthlyIncomeTarget: user.monthlyIncomeTarget,
-    financialGoal: user.financialGoal,
+    monthlySalary: user.monthlySalary,
+    targetSavingsAmount: user.targetSavingsAmount,
+    customCategories: user.customCategories,
+    preferences: user.preferences,
     avatar: user.avatar,
-    theme: user.theme,
     timezone: user.timezone,
     createdAt: user.createdAt,
   },
 });
 
-export const registerUser = async ({ name, email, password }) => {
+export const registerUser = async (userData) => {
+  const { name, email, password } = userData;
   // Check if user exists
   const existing = await User.findOne({ email });
   if (existing) {
     throw new AppError('Email already registered', 409);
   }
 
-  const user = await User.create({ name, email, password });
+  const user = await User.create(userData);
   const token = signToken(user._id);
 
   return formatUser(user, token);
@@ -105,11 +106,11 @@ export const getProfile = async (userId) => {
     name: user.name,
     email: user.email,
     currency: user.currency,
-    monthlyIncome: user.monthlyIncome,
-    monthlyIncomeTarget: user.monthlyIncomeTarget,
-    financialGoal: user.financialGoal,
+    monthlySalary: user.monthlySalary,
+    targetSavingsAmount: user.targetSavingsAmount,
+    customCategories: user.customCategories,
+    preferences: user.preferences,
     avatar: user.avatar,
-    theme: user.theme,
     timezone: user.timezone,
     createdAt: user.createdAt,
   };

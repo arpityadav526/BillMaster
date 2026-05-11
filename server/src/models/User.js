@@ -33,24 +33,28 @@ const userSchema = new mongoose.Schema(
       default: 'USD',
       enum: ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD'],
     },
-    monthlyIncome: {
+    monthlySalary: {
       type: Number,
       default: 0,
-      min: 0,
     },
-    monthlyIncomeTarget: {
+    targetSavingsAmount: {
       type: Number,
-      default: 5000,
-      min: 0,
+      default: 0,
     },
-    financialGoal: {
-      type: String,
-      default: 'Buy a House',
+    customCategories: {
+      type: [String],
+      default: ['Housing', 'Food', 'Utilities', 'Transportation', 'Entertainment', 'Shopping', 'Health', 'Education'],
     },
-    theme: {
-      type: String,
-      enum: ['light', 'dark', 'system'],
-      default: 'dark',
+    preferences: {
+      theme: {
+        type: String,
+        enum: ['light', 'dark', 'system'],
+        default: 'dark',
+      },
+      notifications: {
+        type: Boolean,
+        default: true,
+      },
     },
     timezone: {
       type: String,
@@ -71,6 +75,7 @@ const userSchema = new mongoose.Schema(
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
+  // Using 12 rounds for hardening as per security best practices
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });

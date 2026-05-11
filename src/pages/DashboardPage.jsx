@@ -64,11 +64,43 @@ export default function DashboardPage() {
       ])
 
       const statsData = statsRes.data
+      const totalSpent = statsData.currentMonth?.total || 0
+      const monthlySalary = user?.monthlySalary || incomeStatsRes.data.currentMonthTotal || 0
+      const remainingBalance = monthlySalary - totalSpent
+      
       const formattedStats = [
-        { title: 'Total Expenses', value: formatAmount(statsData.currentMonth?.total || 0, user?.currency), change: `${statsData.changePercent > 0 ? '+' : ''}${statsData.changePercent}%`, trend: statsData.changePercent > 0 ? 'up' : 'down', icon: 'wallet' },
-        { title: 'Monthly Budget', value: formatAmount((budgetsRes.data || []).reduce((acc, b) => acc + (b.limit || 0), 0), user?.currency), change: 'Plan active', trend: 'neutral', icon: 'target' },
-        { title: 'Avg Daily', value: formatAmount((statsData.currentMonth?.total || 0) / 30, user?.currency), change: 'Based on month', trend: 'up', icon: 'piggy' },
-        { title: 'Transactions', value: (statsData.currentMonth?.count || 0).toString(), change: 'This month', trend: 'neutral', icon: 'clock' },
+        { 
+          title: 'Monthly Salary', 
+          value: formatAmount(monthlySalary, user?.currency), 
+          change: 'Primary Income', 
+          trend: 'neutral', 
+          icon: 'wallet',
+          isGlass: true 
+        },
+        { 
+          title: 'Total Spent', 
+          value: formatAmount(totalSpent, user?.currency), 
+          change: `${statsData.changePercent > 0 ? '+' : ''}${statsData.changePercent}% vs last month`, 
+          trend: statsData.changePercent > 0 ? 'up' : 'down', 
+          icon: 'trending-down',
+          isGlass: true
+        },
+        { 
+          title: 'Remaining Balance', 
+          value: formatAmount(remainingBalance, user?.currency), 
+          change: `${((remainingBalance / monthlySalary) * 100).toFixed(1)}% of salary left`, 
+          trend: remainingBalance > (user?.targetSavingsAmount || 0) ? 'down' : 'up', 
+          icon: 'piggy',
+          isGlass: true
+        },
+        { 
+          title: 'Savings Target', 
+          value: formatAmount(user?.targetSavingsAmount || 0, user?.currency), 
+          change: 'Monthly Goal', 
+          trend: 'neutral', 
+          icon: 'target',
+          isGlass: true
+        },
       ]
 
       const totalIncome = incomeStatsRes.data.currentMonthTotal || 0
@@ -223,43 +255,75 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 card animate-slide-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-          <div className="flex items-center justify-between mb-6">
-            <div><h3 className="text-lg font-semibold text-white">Monthly Overview</h3><p className="text-xs text-surface-700 mt-1">Income vs Expenses</p></div>
-            <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-primary-500" /><span className="text-surface-200">Income</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-accent-500" /><span className="text-surface-200">Expenses</span></div>
+        <div className="lg:col-span-2 glass-card p-6 animate-slide-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-xl font-bold text-white tracking-tight">Financial Pulse</h3>
+              <p className="text-xs text-surface-400 mt-1 uppercase tracking-widest font-bold">Income vs Expenses • 6 Months</p>
+            </div>
+            <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/20" /><span className="text-surface-200">Income</span></div>
+              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/20" /><span className="text-surface-200">Expenses</span></div>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={data.monthlyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={data.monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
-                <linearGradient id="ig" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>
-                <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
+                <linearGradient id="ig" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.05)" />
-              <XAxis dataKey="month" tick={{ fill: '#475569', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#475569', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} />
-              <Area type="monotone" dataKey="income" name="Income" stroke="#3b82f6" strokeWidth={2} fill="url(#ig)" />
-              <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#8b5cf6" strokeWidth={2} fill="url(#eg)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
+              <YAxis tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }} />
+              <Area type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={3} fill="url(#ig)" animationDuration={2000} />
+              <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#3b82f6" strokeWidth={3} fill="url(#eg)" animationDuration={2500} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="card animate-slide-up opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
-          <h3 className="text-lg font-semibold text-white mb-2">Spending Categories</h3>
-          <p className="text-xs text-surface-700 mb-4">This month&apos;s breakdown</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={data.categorySpending} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
-              {data.categorySpending.map((e, i) => <Cell key={i} fill={e.color} stroke="none" />)}
-            </Pie></PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-2 mt-2">
-            {data.categorySpending.slice(0, 4).map(c => (
-              <div key={c.name} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ background: c.color }} /><span className="text-surface-200">{c.name}</span></div>
-                <span className="text-white font-medium">{currencySymbol}{c.value.toLocaleString()}</span>
+        <div className="glass-card p-6 animate-slide-up opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
+          <h3 className="text-xl font-bold text-white tracking-tight mb-1">Allocation</h3>
+          <p className="text-[10px] text-surface-400 uppercase tracking-widest font-bold mb-6">Current Month Breakdown</p>
+          <div className="relative h-48 mb-8">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie 
+                  data={data.categorySpending} 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius={65} 
+                  outerRadius={85} 
+                  paddingAngle={8} 
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {data.categorySpending.map((e, i) => (
+                    <Cell key={i} fill={e.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-[10px] text-surface-400 uppercase font-bold">Total</span>
+              <span className="text-lg font-bold text-white">{currencySymbol}{data.categorySpending.reduce((acc, c) => acc + c.value, 0).toLocaleString()}</span>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {data.categorySpending.slice(0, 3).map(c => (
+              <div key={c.name} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full shadow-lg" style={{ background: c.color, boxShadow: `0 0 10px ${c.color}66` }} />
+                  <span className="text-xs font-semibold text-surface-200">{c.name}</span>
+                </div>
+                <span className="text-xs font-bold text-white">{currencySymbol}{c.value.toLocaleString()}</span>
               </div>
             ))}
           </div>

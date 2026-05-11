@@ -1,9 +1,10 @@
+import axios from 'axios';
 import cron from 'node-cron';
 import User from '../models/User.js';
 import Expense from '../models/Expense.js';
 import Budget from '../models/Budget.js';
 import Income from '../models/Income.js';
-import { sendMonthlyReport, sendEmail } from '../utils/mailer.js';
+import { sendMonthlyReport, sendEmail, sendWeeklyInsightReport } from '../utils/mailer.js';
 import { createNotification } from '../services/notificationService.js';
 
 export const initScheduler = () => {
@@ -55,13 +56,68 @@ export const initScheduler = () => {
   cron.schedule('0 10 * * 0', async () => {
     console.log('Running Weekly Insights Job...');
     try {
-      const users = await User.find({}).lean();
+      const users = await User.find({ 'preferences.notifications': true }).lean();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
       for (const user of users) {
-        await createNotification(user._id, {
-          type: 'info',
-          title: 'Weekly Summary Available',
-          description: 'Check your analytics for a summary of your spending this past week.'
-        });
+        // Fetch last 7 days of expenses
+        const expenses = await Expense.find({
+          user: user._id,
+          date: { $gte: sevenDaysAgo }
+        }).lean();
+
+        if (expenses.length === 0) continue;
+
+        // Fetch all transactions for the current month for EOM projection
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const allMonthExpenses = await Expense.find({
+          user: user._id,
+          date: { $gte: startOfMonth }
+        }).lean();
+
+        // Call ML Service
+        try {
+          const mlResponse = await axios.post(`${process.env.ML_SERVICE_URL || 'http://localhost:8000'}/api/ml/predict-savings`, {
+            transactions: allMonthExpenses.map(e => ({
+              amount: e.amount,
+              category: e.category,
+              date: e.date.toISOString()
+            })),
+            monthlySalary: user.monthlySalary || 0,
+            targetSavingsAmount: user.targetSavingsAmount || 0
+          });
+
+          const mlData = mlResponse.data;
+
+          // Calculate category breakdown for the email
+          const catMap = {};
+          expenses.forEach(e => {
+            catMap[e.category] = (catMap[e.category] || 0) + e.amount;
+          });
+          const categories = Object.entries(catMap)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+
+          await sendWeeklyInsightReport(user.email, user.name, {
+            totalSpent: expenses.reduce((acc, e) => acc + e.amount, 0),
+            projectedSpend: mlData.projected_spend,
+            advice: mlData.advice,
+            status: mlData.status,
+            categories
+          });
+
+          await createNotification(user._id, {
+            type: mlData.status === 'at_risk' ? 'warning' : 'tip',
+            title: 'Weekly Insight Ready',
+            description: mlData.advice
+          });
+        } catch (mlErr) {
+          console.error(`ML Service call failed for user ${user._id}:`, mlErr.message);
+        }
       }
     } catch (err) {
       console.error('Weekly Insights Job failed:', err);
