@@ -8,7 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 import * as notificationService from '../../services/notification.service'
-import ParticleBackground from './ParticleBackground'
+import FaultyTerminal from '../ui/FaultyTerminal'
 
 // ========== NAV ITEMS ==========
 const navItems = [
@@ -327,11 +327,27 @@ export function DashboardLayout({ children, onAddExpense }) {
 
   return (
     <div className="min-h-screen bg-[#020617] relative overflow-hidden">
-      {/* Premium Background Effects */}
-      <div className="noise-bg" />
-      <div className="blob top-[-10%] left-[-10%] bg-emerald-500/20" />
-      <div className="blob bottom-[-10%] right-[-10%] bg-blue-500/20" style={{ animationDelay: '-10s' }} />
-      <div className="blob top-[30%] right-[20%] w-64 h-64 bg-purple-500/10" style={{ animationDelay: '-5s' }} />
+      {/* FaultyTerminal Background */}
+      <div className="absolute inset-0 z-0">
+        <FaultyTerminal
+          scale={1.5}
+          gridMul={[2, 1]}
+          digitSize={1.2}
+          timeScale={0.3}
+          scanlineIntensity={0.3}
+          glitchAmount={0.5}
+          flickerAmount={0.5}
+          noiseAmp={0.8}
+          chromaticAberration={0}
+          dither={0}
+          curvature={0}
+          tint="#34D399"
+          mouseReact={false}
+          mouseStrength={0}
+          pageLoadAnimation
+          brightness={0.15}
+        />
+      </div>
       
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div className={`transition-all duration-500 ease-in-out ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-60'}`}>

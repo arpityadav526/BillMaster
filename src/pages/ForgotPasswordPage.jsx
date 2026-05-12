@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Receipt, ArrowRight, ArrowLeft, Mail } from 'lucide-react'
+import FaultyTerminal from '../components/ui/FaultyTerminal'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -13,9 +14,26 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
-      {/* Background */}
+      {/* FaultyTerminal Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-primary-500/8 rounded-full blur-3xl" />
+        <FaultyTerminal
+          scale={1.5}
+          gridMul={[2, 1]}
+          digitSize={1.2}
+          timeScale={0.5}
+          scanlineIntensity={0.5}
+          glitchAmount={1}
+          flickerAmount={1}
+          noiseAmp={1}
+          chromaticAberration={0}
+          dither={0}
+          curvature={0.1}
+          tint="#34D399"
+          mouseReact
+          mouseStrength={0.5}
+          pageLoadAnimation
+          brightness={0.3}
+        />
       </div>
 
       <div className="relative w-full max-w-md animate-scale-in">
