@@ -249,11 +249,22 @@ export default function FaultyTerminal({
   const frozenTimeRef = useRef(0);
   const rafRef = useRef(0);
   const loadAnimationStartRef = useRef(0);
-  const timeOffsetRef = useRef(Math.random() * 100);
+  const timeOffsetRef = useRef(0);
 
   const tintVec = useMemo(() => hexToRgb(tint), [tint]);
-
   const ditherValue = useMemo(() => (typeof dither === 'boolean' ? (dither ? 1 : 0) : dither), [dither]);
+
+  // Store all props in a ref so the animation loop always reads current values
+  // without needing to re-run the useEffect (which destroys/rebuilds WebGL)
+  const propsRef = useRef({});
+  useEffect(() => {
+    propsRef.current = {
+      scale, gridMul, digitSize, timeScale, pause, scanlineIntensity,
+      glitchAmount, flickerAmount, noiseAmp, chromaticAberration,
+      ditherValue, curvature, tintVec, mouseReact, mouseStrength,
+      pageLoadAnimation, brightness
+    };
+  });
 
   const handleMouseMove = useCallback(e => {
     const ctn = containerRef.current;
@@ -264,9 +275,12 @@ export default function FaultyTerminal({
     mouseRef.current = { x, y };
   }, []);
 
+  // Initialize WebGL only once on mount
   useEffect(() => {
     const ctn = containerRef.current;
     if (!ctn) return;
+
+    timeOffsetRef.current = Math.random() * 100;
 
     const renderer = new Renderer({ dpr });
     rendererRef.current = renderer;
@@ -274,6 +288,7 @@ export default function FaultyTerminal({
     gl.clearColor(0, 0, 0, 1);
 
     const geometry = new Triangle(gl);
+    const p = propsRef.current;
 
     const program = new Program(gl, {
       vertex: vertexShader,
@@ -283,26 +298,25 @@ export default function FaultyTerminal({
         iResolution: {
           value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
         },
-        uScale: { value: scale },
-
-        uGridMul: { value: new Float32Array(gridMul) },
-        uDigitSize: { value: digitSize },
-        uScanlineIntensity: { value: scanlineIntensity },
-        uGlitchAmount: { value: glitchAmount },
-        uFlickerAmount: { value: flickerAmount },
-        uNoiseAmp: { value: noiseAmp },
-        uChromaticAberration: { value: chromaticAberration },
-        uDither: { value: ditherValue },
-        uCurvature: { value: curvature },
-        uTint: { value: new Color(tintVec[0], tintVec[1], tintVec[2]) },
+        uScale: { value: p.scale },
+        uGridMul: { value: new Float32Array(p.gridMul) },
+        uDigitSize: { value: p.digitSize },
+        uScanlineIntensity: { value: p.scanlineIntensity },
+        uGlitchAmount: { value: p.glitchAmount },
+        uFlickerAmount: { value: p.flickerAmount },
+        uNoiseAmp: { value: p.noiseAmp },
+        uChromaticAberration: { value: p.chromaticAberration },
+        uDither: { value: p.ditherValue },
+        uCurvature: { value: p.curvature },
+        uTint: { value: new Color(p.tintVec[0], p.tintVec[1], p.tintVec[2]) },
         uMouse: {
           value: new Float32Array([smoothMouseRef.current.x, smoothMouseRef.current.y])
         },
-        uMouseStrength: { value: mouseStrength },
-        uUseMouse: { value: mouseReact ? 1 : 0 },
-        uPageLoadProgress: { value: pageLoadAnimation ? 0 : 1 },
-        uUsePageLoadAnimation: { value: pageLoadAnimation ? 1 : 0 },
-        uBrightness: { value: brightness }
+        uMouseStrength: { value: p.mouseStrength },
+        uUseMouse: { value: p.mouseReact ? 1 : 0 },
+        uPageLoadProgress: { value: p.pageLoadAnimation ? 0 : 1 },
+        uUsePageLoadAnimation: { value: p.pageLoadAnimation ? 1 : 0 },
+        uBrightness: { value: p.brightness }
       }
     });
     programRef.current = program;
@@ -325,27 +339,28 @@ export default function FaultyTerminal({
 
     const update = t => {
       rafRef.current = requestAnimationFrame(update);
+      const cur = propsRef.current;
 
-      if (pageLoadAnimation && loadAnimationStartRef.current === 0) {
+      if (cur.pageLoadAnimation && loadAnimationStartRef.current === 0) {
         loadAnimationStartRef.current = t;
       }
 
-      if (!pause) {
-        const elapsed = (t * 0.001 + timeOffsetRef.current) * timeScale;
+      if (!cur.pause) {
+        const elapsed = (t * 0.001 + timeOffsetRef.current) * cur.timeScale;
         program.uniforms.iTime.value = elapsed;
         frozenTimeRef.current = elapsed;
       } else {
         program.uniforms.iTime.value = frozenTimeRef.current;
       }
 
-      if (pageLoadAnimation && loadAnimationStartRef.current > 0) {
+      if (cur.pageLoadAnimation && loadAnimationStartRef.current > 0) {
         const animationDuration = 2000;
         const animationElapsed = t - loadAnimationStartRef.current;
         const progress = Math.min(animationElapsed / animationDuration, 1);
         program.uniforms.uPageLoadProgress.value = progress;
       }
 
-      if (mouseReact) {
+      if (cur.mouseReact) {
         const dampingFactor = 0.08;
         const smoothMouse = smoothMouseRef.current;
         const mouse = mouseRef.current;
@@ -362,38 +377,38 @@ export default function FaultyTerminal({
     rafRef.current = requestAnimationFrame(update);
     ctn.appendChild(gl.canvas);
 
-    if (mouseReact) ctn.addEventListener('mousemove', handleMouseMove);
+    ctn.addEventListener('mousemove', handleMouseMove);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
-      if (mouseReact) ctn.removeEventListener('mousemove', handleMouseMove);
+      ctn.removeEventListener('mousemove', handleMouseMove);
       if (gl.canvas.parentElement === ctn) ctn.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
-      loadAnimationStartRef.current = 0;
-      timeOffsetRef.current = Math.random() * 100;
     };
-  }, [
-    dpr,
-    pause,
-    timeScale,
-    scale,
-    gridMul,
-    digitSize,
-    scanlineIntensity,
-    glitchAmount,
-    flickerAmount,
-    noiseAmp,
-    chromaticAberration,
-    ditherValue,
-    curvature,
-    tintVec,
-    mouseReact,
-    mouseStrength,
-    pageLoadAnimation,
-    brightness,
-    handleMouseMove
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dpr]);
+
+  // Update shader uniforms reactively without rebuilding WebGL context
+  useEffect(() => {
+    const program = programRef.current;
+    if (!program) return;
+    const u = program.uniforms;
+    u.uScale.value = scale;
+    u.uGridMul.value = new Float32Array(gridMul);
+    u.uDigitSize.value = digitSize;
+    u.uScanlineIntensity.value = scanlineIntensity;
+    u.uGlitchAmount.value = glitchAmount;
+    u.uFlickerAmount.value = flickerAmount;
+    u.uNoiseAmp.value = noiseAmp;
+    u.uChromaticAberration.value = chromaticAberration;
+    u.uDither.value = ditherValue;
+    u.uCurvature.value = curvature;
+    u.uTint.value = new Color(tintVec[0], tintVec[1], tintVec[2]);
+    u.uMouseStrength.value = mouseStrength;
+    u.uUseMouse.value = mouseReact ? 1 : 0;
+    u.uBrightness.value = brightness;
+  });
 
   return (
     <div ref={containerRef} className={`w-full h-full relative overflow-hidden ${className || ''}`} style={style} {...rest} />
