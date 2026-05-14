@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
+import './StatCard.css'
 
 // ========== BUTTON ==========
 export function Button({ children, variant = 'primary', size = 'md', className = '', disabled = false, isLoading = false, ...props }) {
@@ -37,7 +38,7 @@ export function Button({ children, variant = 'primary', size = 'md', className =
 export function Card({ children, className = '' }) {
   return (
     <motion.div 
-      className={`glass-card rounded-2xl ${className}`}
+      className={`stat-card-new ${className}`}
       whileHover={{ y: -4, transition: { type: 'spring', stiffness: 300 } }}
     >
       {children}
@@ -177,74 +178,79 @@ export function Skeleton({ className = '' }) {
 }
 
 // ========== STAT CARD ==========
-export function StatCard({ title, value, change, trend, icon, delay = 0, isGlass = true }) {
+export function StatCard({ title, value, change, trend, icon, delay = 0 }) {
   const trendColors = {
-    up: 'text-emerald-400',
-    down: 'text-rose-400',
-    neutral: 'text-amber-400',
+    up: 'trend-up',
+    down: 'trend-down',
+    neutral: 'trend-neutral',
   }
 
   const icons = {
     wallet: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-primary-400">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5z" />
-        <path d="M16 12a1 1 0 100 2 1 1 0 000-2z" fill="currentColor" />
+        <circle cx="16" cy="12" r="1" fill="currentColor" />
       </svg>
     ),
     target: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-accent-400">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <circle cx="12" cy="12" r="10" />
         <circle cx="12" cy="12" r="6" />
         <circle cx="12" cy="12" r="2" />
       </svg>
     ),
     piggy: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-emerald-400">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2" />
-        <circle cx="12" cy="12" r="1" />
-      </svg>
-    ),
-    clock: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-400">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 6v6l4 2" />
       </svg>
     ),
     'trending-down': (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-rose-400">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M23 18l-9.5-9.5-5 5L1 6" />
         <polyline points="17 18 23 18 23 12" />
       </svg>
     ),
   }
 
+  // Calculate fill percentage based on a generic 75% for now, or use a heuristic
+  const fillPercentage = trend === 'up' ? 76 : trend === 'down' ? 42 : 58;
+
   return (
     <motion.div 
-      className={`${isGlass ? 'glass-card' : 'card'} p-6 relative overflow-hidden group`} 
+      className="stat-card-new"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay / 1000, type: 'spring', stiffness: 200, damping: 20 }}
-      whileHover={{ y: -8, transition: { duration: 0.3, ease: 'easeOut' } }}
     >
-      {/* Decorative inner glow */}
-      <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full blur-3xl opacity-20 transition-opacity group-hover:opacity-40 
-        ${icon === 'wallet' || icon === 'piggy' ? 'bg-emerald-500' : 'bg-blue-500'}`} 
-      />
-      
-      <div className="flex items-start justify-between mb-6 relative z-10">
-        <div className="p-3.5 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-all duration-300 border border-white/5 shadow-inner">
+      <div className="card-header">
+        <div className="icon-box">
           {icons[icon] || icons['wallet']}
         </div>
-        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest ${trendColors[trend]}`}>
-          {trend === 'up' && <span>↑</span>}
-          {trend === 'down' && <span>↓</span>}
-          {change}
+        <p className="title-text">{title}</p>
+        <div className={`trend-badge ${trendColors[trend]}`}>
+          {trend === 'up' ? (
+            <svg viewBox="0 0 1792 1792" fill="currentColor" width="12" height="12">
+              <path d="M1408 1216q0 26-19 45t-45 19h-896q-26 0-45-19t-19-45 19-45l448-448q19-19 45-19t45 19l448 448q19 19 19 45z" />
+            </svg>
+          ) : trend === 'down' ? (
+            <svg viewBox="0 0 1792 1792" fill="currentColor" width="12" height="12" style={{ transform: 'rotate(180deg)' }}>
+              <path d="M1408 1216q0 26-19 45t-45 19h-896q-26 0-45-19t-19-45 19-45l448-448q19-19 45-19t45 19l448 448q19 19 19 45z" />
+            </svg>
+          ) : null}
+          {change.split(' ')[0]}
         </div>
       </div>
       
-      <div className="relative z-10">
-        <p className="text-[11px] font-bold text-surface-400 uppercase tracking-widest mb-1.5">{title}</p>
-        <p className="text-3xl font-bold text-white tracking-tight tabular-nums">{value}</p>
+      <div className="card-data">
+        <p className="value">{value}</p>
+        <div className="range-container">
+          <motion.div 
+            className="range-fill"
+            initial={{ width: 0 }}
+            animate={{ width: `${fillPercentage}%` }}
+            transition={{ duration: 1.5, delay: 0.5 + (delay / 1000) }}
+          />
+        </div>
       </div>
     </motion.div>
   )

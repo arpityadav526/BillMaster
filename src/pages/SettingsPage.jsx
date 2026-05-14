@@ -188,7 +188,7 @@ export default function SettingsPage() {
           {activeTab === 'profile' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               {/* Avatar Section */}
-              <div className="card">
+              <div className="stat-card-new">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-white">Profile Picture</h3>
                   {avatarSuccess && <motion.span initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">{avatarSuccess}</motion.span>}
@@ -219,7 +219,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Personal Info */}
-              <form onSubmit={handleProfileSave} className="card relative overflow-hidden">
+              <form onSubmit={handleProfileSave} className="stat-card-new relative overflow-hidden">
                 {isSavingProfile && (
                   <div className="absolute inset-0 z-20 bg-surface-950/50 backdrop-blur-sm flex items-center justify-center rounded-2xl">
                     <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
@@ -288,7 +288,7 @@ export default function SettingsPage() {
 
           {activeTab === 'cards' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-              <div className="card bg-gradient-to-br from-surface-900 to-surface-950 border-white/5 overflow-hidden">
+              <div className="stat-card-new bg-gradient-to-br from-surface-900 to-surface-950 border-white/5 overflow-hidden">
                 <div className="flex flex-col md:flex-row gap-12 items-center p-4">
                   {/* Card Preview */}
                   <div className="flex-shrink-0 perspective-1000">
@@ -384,7 +384,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'appearance' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="stat-card-new">
               <h3 className="text-lg font-semibold text-white mb-2">Theme Preferences</h3>
               <p className="text-sm text-surface-700 mb-6">Customize the look and feel of BillMaster.</p>
               
@@ -415,7 +415,7 @@ export default function SettingsPage() {
 
           {activeTab === 'security' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <form onSubmit={handlePasswordChange} className="card">
+              <form onSubmit={handlePasswordChange} className="stat-card-new">
                 <h3 className="text-lg font-semibold text-white mb-6">Change Password</h3>
                 {passwordError && <div className="p-3 mb-6 text-sm text-rose-400 bg-rose-500/10 rounded-xl border border-rose-500/20">{passwordError}</div>}
                 {passwordSuccess && <div className="p-3 mb-6 text-sm text-emerald-400 bg-emerald-500/10 rounded-xl border border-emerald-500/20">{passwordSuccess}</div>}
@@ -451,7 +451,7 @@ export default function SettingsPage() {
                 </div>
               </form>
 
-              <div className="card border-rose-500/20 bg-rose-500/5">
+              <div className="stat-card-new border-rose-500/20 bg-rose-500/5">
                 <div className="flex items-center gap-2 mb-2">
                   <Trash2 className="w-5 h-5 text-rose-400" />
                   <h3 className="text-lg font-semibold text-white">Delete Account</h3>
@@ -465,7 +465,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'notifications' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="stat-card-new">
               <h3 className="text-lg font-semibold text-white mb-6">Notification Preferences</h3>
               
               <div className="space-y-6">

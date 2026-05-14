@@ -1,0 +1,102 @@
+.stat-card-new {
+  padding: 1.5rem;
+  background-color: var(--color-surface-900); /* Darker background for neumorphism in dark theme */
+  box-shadow:
+    -5px -5px 15px rgba(255, 255, 255, 0.02),
+    5px 5px 15px rgba(0, 0, 0, 0.5),
+    inset -5px -5px 15px rgba(255, 255, 255, 0.01);
+  border-radius: 24px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.stat-card-new:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    -8px -8px 20px rgba(255, 255, 255, 0.03),
+    8px 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.stat-card-new .card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card-new .icon-box {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--color-primary-500);
+  box-shadow:
+    -2px -2px 6px rgba(255, 255, 255, 0.1),
+    2px 2px 6px rgba(0, 0, 0, 0.4);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-card-new .icon-box svg {
+  color: #ffffff;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.stat-card-new .title-text {
+  margin-left: 0.75rem;
+  color: var(--color-surface-300);
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.stat-card-new .trend-badge {
+  margin-left: 0.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.stat-card-new .trend-up { color: #10b981; }
+.stat-card-new .trend-down { color: #f43f5e; }
+.stat-card-new .trend-neutral { color: #f59e0b; }
+
+.stat-card-new .card-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-new .value {
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.stat-card-new .range-container {
+  position: relative;
+  background-color: var(--color-surface-950);
+  box-shadow:
+    inset 2px 2px 5px rgba(0, 0, 0, 0.5),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.stat-card-new .range-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-400));
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}

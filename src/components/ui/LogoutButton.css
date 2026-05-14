@@ -12,7 +12,7 @@
   width: 45px;
   height: 45px;
   border: none;
-  border-radius: 12px; /* Slightly more rounded to match BillMaster */
+  border-radius: 12px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -21,7 +21,7 @@
   background-color: var(--af-white);
 }
 
-/* plus sign */
+/* icon box */
 .sign {
   width: 100%;
   transition-duration: .3s;
@@ -49,23 +49,6 @@
   font-weight: 600;
   transition-duration: .3s;
   white-space: nowrap;
-}
-
-/* show-text state (e.g. for mobile or non-collapsed sidebar) */
-.logout-btn.show-text {
-  width: 125px;
-  border-radius: 12px;
-}
-
-.logout-btn.show-text .sign {
-  width: 30%;
-  padding-left: 20px;
-}
-
-.logout-btn.show-text .text {
-  opacity: 1;
-  width: 70%;
-  padding-right: 10px;
 }
 
 /* hover effect on button width */

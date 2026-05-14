@@ -73,7 +73,7 @@ function AIChatWidget() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}
-      className="card gradient-border">
+      className="stat-card-new gradient-border">
       <div className="flex items-center gap-2 mb-4">
         <div className="p-2 rounded-xl bg-accent-400/10 border border-accent-400/20">
           <Brain className="w-5 h-5 text-accent-400" />
@@ -179,7 +179,7 @@ function SavingsPredictionWidget({ currency }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-      className="card border-primary-500/20 bg-primary-500/5 relative overflow-hidden">
+      className="stat-card-new border-primary-500/20 bg-primary-500/5 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 blur-2xl rounded-full" />
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-1">
@@ -322,7 +322,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {isLoading ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-28" />) : (
           <>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }} className="card">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }} className="stat-card-new">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-surface-700">Total Expenses</span>
                 <div className="p-2 rounded-lg bg-rose-500/10"><TrendingUp className="w-4 h-4 text-rose-400" /></div>
@@ -331,7 +331,7 @@ export default function AnalyticsPage() {
               <p className="text-xs text-surface-700 mt-1">{stats?.currentMonth?.count || 0} transactions</p>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="stat-card-new">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-surface-700">Net Cash Flow</span>
                 <div className="p-2 rounded-lg bg-emerald-500/10"><ArrowUpRight className="w-4 h-4 text-emerald-400" /></div>
@@ -342,7 +342,7 @@ export default function AnalyticsPage() {
               <p className="text-xs text-surface-700 mt-1">Income − Expenses</p>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="stat-card-new">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-surface-700">Savings Rate</span>
                 <div className="p-2 rounded-lg bg-primary-500/10"><Target className="w-4 h-4 text-primary-400" /></div>
@@ -351,7 +351,7 @@ export default function AnalyticsPage() {
               <p className="text-xs text-surface-700 mt-1">Of total income</p>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="stat-card-new">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-surface-700">vs Last Month</span>
                 <div className={`p-2 rounded-lg ${stats?.changePercent > 0 ? 'bg-rose-500/10' : 'bg-emerald-500/10'}`}>
@@ -369,7 +369,7 @@ export default function AnalyticsPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 card">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 stat-card-new">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-white">Spending Trends</h3>
@@ -399,7 +399,7 @@ export default function AnalyticsPage() {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="stat-card-new">
           <h3 className="text-lg font-semibold text-white mb-2">Category Breakdown</h3>
           <p className="text-xs text-surface-700 mb-4">This month's spending</p>
           {catSpending.length === 0 ? (
@@ -428,7 +428,7 @@ export default function AnalyticsPage() {
 
       {/* Budget + ML Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 items-start">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="card">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="stat-card-new">
           <h3 className="text-lg font-semibold text-white mb-6">Budget vs Actual</h3>
           {budgetComparison.length === 0 ? (
             <div className="py-8 text-center text-sm text-surface-700 italic">No budgets set for this month</div>
@@ -449,7 +449,7 @@ export default function AnalyticsPage() {
 
         <div className="space-y-6">
           {/* ML Insights Panel */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="card gradient-border">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="stat-card-new gradient-border">
             <div className="flex items-center gap-2 mb-6">
               <Brain className="w-5 h-5 text-accent-400" />
               <h3 className="text-lg font-semibold text-white">Smart Insights</h3>

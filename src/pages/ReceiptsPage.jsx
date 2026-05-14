@@ -102,7 +102,7 @@ export default function ReceiptsPage() {
 
       {/* Upload Zone */}
       <div
-        className={`card mb-8 border-2 border-dashed transition-all duration-300 cursor-pointer ${dragActive ? 'border-primary-500 bg-primary-500/5' : 'border-white/10 hover:border-white/20'}`}
+        className={`stat-card-new mb-8 border-2 border-dashed transition-all duration-300 cursor-pointer ${dragActive ? 'border-primary-500 bg-primary-500/5' : 'border-white/10 hover:border-white/20'}`}
         onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
         onClick={() => document.getElementById('file-upload').click()}
       >
@@ -121,7 +121,7 @@ export default function ReceiptsPage() {
 
       {/* Uploading Files */}
       {uploadingFiles.length > 0 && (
-        <div className="card mb-8">
+        <div className="stat-card-new mb-8">
           <h3 className="text-lg font-semibold text-white mb-4">Upload Progress</h3>
           <div className="space-y-3">
             {uploadingFiles.map(file => (
@@ -152,7 +152,7 @@ export default function ReceiptsPage() {
       )}
 
       {/* Receipts Grid */}
-      <div className="card">
+      <div className="stat-card-new">
         <h3 className="text-lg font-semibold text-white mb-6">Processed Receipts</h3>
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

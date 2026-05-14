@@ -262,7 +262,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 glass-card p-6 animate-slide-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+        <div className="lg:col-span-2 stat-card-new p-6 animate-slide-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-xl font-bold text-white tracking-tight">Financial Pulse</h3>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="glass-card p-6 animate-slide-up opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
+        <div className="stat-card-new p-6 animate-slide-up opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
           <h3 className="text-xl font-bold text-white tracking-tight mb-1">Allocation</h3>
           <p className="text-[10px] text-surface-400 uppercase tracking-widest font-bold mb-6">Current Month Breakdown</p>
           <div className="relative h-48 mb-8">
@@ -338,7 +338,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="card animate-slide-up opacity-0" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
+        <div className="stat-card-new animate-slide-up opacity-0" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
           <h3 className="text-lg font-semibold text-white mb-6">Budget Progress</h3>
           <div className="space-y-5">
             {data.budgets.length === 0 ? (
@@ -360,7 +360,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="card animate-slide-up opacity-0" style={{ animationDelay: '700ms', animationFillMode: 'forwards' }}>
+        <div className="stat-card-new animate-slide-up opacity-0" style={{ animationDelay: '700ms', animationFillMode: 'forwards' }}>
           <h3 className="text-lg font-semibold text-white mb-6">Financial Insights</h3>
           <div className="space-y-4">
             {data.insights.length === 0 ? (
@@ -377,7 +377,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="card animate-slide-up opacity-0" style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
+      <div className="stat-card-new animate-slide-up opacity-0" style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
         <div className="flex items-center justify-between mb-6">
           <div><h3 className="text-lg font-semibold text-white">Recent Transactions</h3><p className="text-xs text-surface-700 mt-1">Your latest expense activity</p></div>
           <a href="/expenses" className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1 transition-colors">View All <ArrowUpRight className="w-3 h-3" /></a>

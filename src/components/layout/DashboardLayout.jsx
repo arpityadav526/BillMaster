@@ -156,7 +156,7 @@ const NavContent = ({ collapsed, setMobileOpen, location, logout }) => {
 
       {/* Bottom */}
       <div className="p-3 border-t border-white/5 flex justify-center lg:justify-start">
-        <LogoutButton onClick={logout} showText={!collapsed} />
+        <LogoutButton onClick={logout} />
       </div>
     </>
   )
