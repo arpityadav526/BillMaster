@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
-import { Button, Input } from '../components/ui/index'
-import { User, Shield, Bell, Moon, Sun, Monitor, Trash2, Camera, Loader2 } from 'lucide-react'
+import { Button, Input, Badge, CreditCard } from '../components/ui/index'
+import { User, Shield, Bell, Moon, Sun, Monitor, Trash2, Camera, Loader2, CreditCard as CreditCardIcon } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { motion } from 'framer-motion'
@@ -49,6 +49,16 @@ export default function SettingsPage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  // Card Form State
+  const [cardData, setCardData] = useState({
+    number: '',
+    holder: '',
+    expiry: '',
+    cvv: '',
+    type: 'visa'
+  })
+  const [isCardFlipped, setIsCardFlipped] = useState(false)
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0]
@@ -139,6 +149,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'cards', label: 'Payment Cards', icon: CreditCardIcon },
     { id: 'appearance', label: 'Appearance', icon: Moon },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -272,6 +283,103 @@ export default function SettingsPage() {
                   </Button>
                 </div>
               </form>
+            </motion.div>
+          )}
+
+          {activeTab === 'cards' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+              <div className="card bg-gradient-to-br from-surface-900 to-surface-950 border-white/5 overflow-hidden">
+                <div className="flex flex-col md:flex-row gap-12 items-center p-4">
+                  {/* Card Preview */}
+                  <div className="flex-shrink-0 perspective-1000">
+                    <CreditCard 
+                      cardNumber={cardData.number}
+                      holderName={cardData.holder || user?.name}
+                      expiryDate={cardData.expiry}
+                      cvv={cardData.cvv}
+                      cardType={cardData.type}
+                      isFlipped={isCardFlipped}
+                    />
+                  </div>
+
+                  {/* Card Entry Form */}
+                  <div className="flex-1 w-full space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input 
+                        label="Card Number" 
+                        placeholder="0000 0000 0000 0000"
+                        maxLength="19"
+                        value={cardData.number}
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim()
+                          setCardData({...cardData, number: val, type: val.startsWith('4') ? 'visa' : 'mastercard'})
+                        }}
+                      />
+                      <Input 
+                        label="Card Holder" 
+                        placeholder="Full Name"
+                        value={cardData.holder}
+                        onChange={e => setCardData({...cardData, holder: e.target.value})}
+                      />
+                      <Input 
+                        label="Expiry Date" 
+                        placeholder="MM/YY"
+                        maxLength="5"
+                        value={cardData.expiry}
+                        onChange={e => {
+                          let val = e.target.value.replace(/\D/g, '')
+                          if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2, 4)
+                          setCardData({...cardData, expiry: val})
+                        }}
+                      />
+                      <Input 
+                        label="CVV" 
+                        placeholder="•••"
+                        maxLength="3"
+                        onFocus={() => setIsCardFlipped(true)}
+                        onBlur={() => setIsCardFlipped(false)}
+                        value={cardData.cvv}
+                        onChange={e => setCardData({...cardData, cvv: e.target.value.replace(/\D/g, '')})}
+                      />
+                    </div>
+                    
+                    <div className="pt-4 flex items-center justify-between">
+                      <p className="text-xs text-surface-700 italic max-w-[240px]">
+                        Your card details are encrypted and never stored on our servers.
+                      </p>
+                      <Button size="sm">Save Card</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Saved Cards List */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-surface-400 uppercase tracking-widest px-1">Saved Methods</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between group hover:border-emerald-500/30 transition-all cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-8 rounded bg-surface-800 border border-white/5 flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-white">VISA</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-white">Visa ending in 4242</p>
+                        <p className="text-xs text-surface-700">Expires 12/24</p>
+                      </div>
+                    </div>
+                    <Badge variant="blue">Default</Badge>
+                  </div>
+                  
+                  <button className="p-4 rounded-2xl border border-dashed border-white/10 flex items-center justify-center gap-2 text-surface-400 hover:text-white hover:border-white/20 transition-all group">
+                    <div className="p-1 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium">Add Another Method</span>
+                  </button>
+                </div>
+              </div>
             </motion.div>
           )}
 

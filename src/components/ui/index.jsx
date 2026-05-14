@@ -260,3 +260,6 @@ export function EmptyState({ icon, title, description }) {
     </div>
   )
 }
+
+// ========== CREDIT CARD ==========
+export { default as CreditCard } from './CreditCard'
