@@ -42,8 +42,13 @@ function AIChatWidget() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const bottomRef = useRef(null)
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
@@ -149,7 +154,7 @@ function AIChatWidget() {
 }
 
 // ── Savings Prediction Widget ───────────────────────────────────────────────
-function SavingsPredictionWidget({ currencySymbol, currency }) {
+function SavingsPredictionWidget({ currency }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -487,7 +492,7 @@ export default function AnalyticsPage() {
           </motion.div>
 
           {/* Live Savings Prediction */}
-          <SavingsPredictionWidget currencySymbol={currencySymbol} currency={user?.currency} />
+          <SavingsPredictionWidget currency={user?.currency} />
         </div>
       </div>
 
