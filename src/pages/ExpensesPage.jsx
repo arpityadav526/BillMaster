@@ -207,7 +207,7 @@ export default function ExpensesPage() {
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add Expense">
         <form onSubmit={handleAdd} className="space-y-5">
           <Input label="Description" placeholder="e.g., Grocery shopping" value={newExpense.description} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })} required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={`Amount (${currencySymbol})`} type="number" placeholder="0.00" step="0.01" value={newExpense.amount} onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })} required />
             <Input label="Date" type="date" value={newExpense.date} onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })} required />
           </div>
@@ -229,7 +229,7 @@ export default function ExpensesPage() {
         {selectedExpense && (
           <form onSubmit={handleEdit} className="space-y-5">
             <Input label="Description" value={selectedExpense.description} onChange={(e) => setSelectedExpense({ ...selectedExpense, description: e.target.value })} required />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label={`Amount (${currencySymbol})`} type="number" value={selectedExpense.amount} step="0.01" onChange={(e) => setSelectedExpense({ ...selectedExpense, amount: e.target.value })} required />
               <Input label="Date" type="date" value={selectedExpense.date} onChange={(e) => setSelectedExpense({ ...selectedExpense, date: e.target.value })} required />
             </div>

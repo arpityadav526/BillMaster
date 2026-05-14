@@ -227,7 +227,7 @@ export default function DashboardPage() {
             {wizardStep === 1 ? (
               <form onSubmit={handleSetupIncome} className="space-y-4 max-w-lg">
                 <h4 className="text-sm font-semibold text-emerald-400">Step 1: Add your primary income</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Income Source" placeholder="e.g., Monthly Salary" value={newIncome.source} onChange={(e) => setNewIncome({ ...newIncome, source: e.target.value })} required />
                   <Input label="Amount" type="number" placeholder="0.00" value={newIncome.amount} onChange={(e) => setNewIncome({ ...newIncome, amount: e.target.value })} required />
                 </div>
@@ -236,7 +236,7 @@ export default function DashboardPage() {
             ) : (
               <form onSubmit={handleSetupBudget} className="space-y-4 max-w-lg">
                 <h4 className="text-sm font-semibold text-emerald-400">Step 2: Set your first budget limit</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-surface-200">Category</label>
                     <select value={newBudget.category} onChange={(e) => setNewBudget({ ...newBudget, category: e.target.value })} className="input-field">
@@ -413,7 +413,7 @@ export default function DashboardPage() {
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add New Expense">
         <form onSubmit={handleAddExpense} className="space-y-5">
           <Input label="Description" placeholder="e.g., Grocery shopping" value={newExpense.description} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })} required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Amount" type="number" placeholder="0.00" step="0.01" value={newExpense.amount} onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })} required />
             <Input label="Date" type="date" value={newExpense.date} onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })} required />
           </div>
@@ -423,7 +423,7 @@ export default function DashboardPage() {
               {categories.map(c => <option key={c.id} value={c.id} className="bg-surface-900">{c.name}</option>)}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-surface-200">Payment Method</label>
               <select value={newExpense.paymentMethod} onChange={(e) => setNewExpense({ ...newExpense, paymentMethod: e.target.value })} className="input-field appearance-none cursor-pointer">

@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, Upload, CreditCard, Settings, LogOut,
+  LayoutDashboard, Upload, CreditCard, Settings,
   ChevronLeft, ChevronRight, TrendingUp, Menu, X, Bell, Search, Plus,
-  Link2, CheckCircle2, Info, AlertTriangle, Lightbulb, DollarSign, User as UserIcon
+  Link2, CheckCircle2, Info, AlertTriangle, Lightbulb, User as UserIcon
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 import * as notificationService from '../../services/notification.service'
 import FaultyTerminal from '../ui/FaultyTerminal'
+import LogoutButton from '../ui/LogoutButton'
+import logo from '../../assets/logo.jpeg'
 
 // ========== NAV ITEMS ==========
 const navItems = [
@@ -24,8 +26,8 @@ const navItems = [
 function BillMasterLogo({ collapsed }) {
   return (
     <div className="flex items-center gap-3 px-4 py-6 border-b border-white/5">
-      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
-        <DollarSign className="w-5 h-5 text-white" />
+      <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 shadow-lg shadow-emerald-500/20 ring-1 ring-white/10">
+        <img src={logo} alt="BillMaster Logo" className="w-full h-full object-cover" />
       </div>
       {!collapsed && (
         <span className="text-lg font-bold text-white tracking-tight">
@@ -153,14 +155,8 @@ const NavContent = ({ collapsed, setMobileOpen, location, logout }) => {
       </nav>
 
       {/* Bottom */}
-      <div className="p-3 border-t border-white/5">
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-surface-200 hover:bg-white/5 hover:text-white transition-all duration-200 w-full cursor-pointer"
-        >
-          <LogOut className="w-5 h-5 text-surface-700" />
-          {!collapsed && <span>Log Out</span>}
-        </button>
+      <div className="p-3 border-t border-white/5 flex justify-center lg:justify-start">
+        <LogoutButton onClick={logout} showText={!collapsed} />
       </div>
     </>
   )
@@ -214,7 +210,7 @@ export function Sidebar({ collapsed, setCollapsed }) {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen border-r border-white/5 bg-surface-950/80 backdrop-blur-xl transition-all duration-300 z-40
+        className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen border-r border-white/5 bg-surface-950/80 backdrop-blur-xl transition-all duration-300 z-40 overflow-y-auto
           ${collapsed ? 'w-[72px]' : 'w-60'}`}
       >
         <NavContent collapsed={collapsed} setMobileOpen={setMobileOpen} location={location} logout={logout} />
@@ -265,7 +261,7 @@ export function TopNavbar({ onAddExpense }) {
     <header className="sticky top-0 z-30 glass border-b border-white/5">
       <div className="flex items-center justify-between h-16 px-4 lg:px-8">
         {/* Search */}
-        <div className={`relative max-w-md flex-1 transition-all duration-300 ${searchFocused ? 'max-w-lg' : ''}`}>
+        <div className={`relative flex-1 transition-all duration-300 ${searchFocused ? 'max-w-md lg:max-w-lg' : 'max-w-[140px] sm:max-w-xs lg:max-w-md'}`}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-700" />
           <input
             type="text"
@@ -326,7 +322,7 @@ export function DashboardLayout({ children, onAddExpense }) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[#020617] relative overflow-hidden">
+    <div className="min-h-screen bg-[#020617] relative">
       {/* FaultyTerminal Background */}
       <div className="absolute inset-0 z-0">
         <FaultyTerminal
