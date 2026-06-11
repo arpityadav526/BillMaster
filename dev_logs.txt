@@ -1,0 +1,92 @@
+
+> billmaster@0.0.0 predev
+> lsof -ti:5173,5001,8000 | xargs kill -9 2>/dev/null || true
+
+
+> billmaster@0.0.0 dev
+> concurrently "npm run dev:backend" "npm run dev:frontend" "npm run dev:ml"
+
+[1] 
+[1] > billmaster@0.0.0 dev:frontend
+[1] > vite
+[1] 
+[0] 
+[0] > billmaster@0.0.0 dev:backend
+[0] > cd server && npm run dev
+[0] 
+[2] 
+[2] > billmaster@0.0.0 dev:ml
+[2] > cd ml-service && (python3 -m uvicorn main:app --reload --port 8000 || python -m uvicorn main:app --reload --port 8000)
+[2] 
+[0] 
+[0] > billmaster-server@1.0.0 dev
+[0] > nodemon server.js
+[0] 
+[2] INFO:     Will watch for changes in these directories: ['/Users/arpityadav526/Desktop/BillMaster/ml-service']
+[2] INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+[2] INFO:     Started reloader process [75093] using StatReload
+[0] [33m[nodemon] 3.1.14[39m
+[0] [33m[nodemon] to restart at any time, enter `rs`[39m
+[0] [33m[nodemon] watching path(s): *.*[39m
+[0] [33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[0] [32m[nodemon] starting `node server.js`[39m
+[1] 1:11:44 AM [vite] (client) Re-optimizing dependencies because vite config has changed
+[1] 
+[1]   VITE v8.0.11  ready in 426 ms
+[1] 
+[1]   ➜  Local:   http://localhost:5173/
+[1]   ➜  Network: use --host to expose
+[0] 
+[0] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[0]   💰 BillMaster Server Starting...
+[0] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[0] ✓ MongoDB connected: localhost
+[0] Initializing BillMaster Automated Schedulers...
+[0] Schedulers set: Monthly Report, Weekly Insights, End-of-Month Reminders, Salary Alerts.
+[0] 
+[0]   ✓ API & WebSockets → http://localhost:5001
+[0]   ✓ Health check    → http://localhost:5001/api/health
+[0]   ✓ Environment     → development
+[0]   ✓ Client URL      → http://localhost:5173
+[0] 
+[0] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[0] 
+[2] INFO:     Started server process [75127]
+[2] INFO:     Waiting for application startup.
+[2] INFO:     Application startup complete.
+[0]   ↗ WebSocket connected: YZDUwA584UO0F5IEAAAC
+[0] [0mGET /uploads/avatars/avatar-1778513036469-672203766.jpeg [36m304[0m 1.189 ms - -[0m
+[0] [0mGET /api/auth/me [36m304[0m 11.982 ms - -[0m
+[0] [0mGET /api/notifications [36m304[0m 59.109 ms - -[0m
+[0] [0mGET /api/notifications [36m304[0m 41.597 ms - -[0m
+[0] [0mGET /api/auth/me [36m304[0m 71.386 ms - -[0m
+[0] [0mGET /api/analytics/dashboard [32m200[0m 94.912 ms - 2598[0m
+[0] [0mGET /api/analytics/dashboard [32m200[0m 11.294 ms - 2598[0m
+[1] 1:13:16 AM [vite] (client) [Unhandled error] RangeError: Invalid currency code : ₹
+[1]  > formatAmount src/utils/currency.js:17:9
+[1]     15 |  export const formatAmount = (amount, code = 'USD') => {
+[1]     16 |    const config = currencyConfig[code] || currencyConfig.USD;
+[1]     17 |    return new Intl.NumberFormat(config.locale, {
+[1]        |           ^
+[1]     18 |      style: 'currency',
+[1]     19 |      currency: code,
+[1]  > src/pages/analytics/CategoryTrends.jsx:41:64
+[1]  > CategoryTrends src/pages/analytics/CategoryTrends.jsx:15:15
+[1]  > Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+[1]  > renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+[1]  > updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+[1]  > beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+[1]  > runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+[1] 
+[1] 1:13:16 AM [vite] (client) [console.warn] An error occurred in the <CategoryTrends> component.
+[1] 
+[1] Consider adding an error boundary to your tree to customize error handling behavior.
+[1] Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+[1] 
+[0]   ↙ WebSocket disconnected: YZDUwA584UO0F5IEAAAC
+[2] sh: line 1: 75093 Killed: 9               python3 -m uvicorn main:app --reload --port 8000
+[2] sh: python: command not found
+[0] [31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[2] npm run dev:ml exited with code 127
+[1] npm run dev:frontend exited with code SIGKILL
+[0] npm run dev:backend exited with code SIGTERM

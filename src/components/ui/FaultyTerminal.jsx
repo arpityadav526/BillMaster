@@ -39,6 +39,10 @@ uniform float uBrightness;
 
 float time;
 
+// Constant rotation matrices for FBM octaves (precomputed, no runtime trig)
+const mat2 rot1 = mat2(0.8, -0.6, 0.6, 0.8);
+const mat2 rot2 = mat2(0.35, -0.93, 0.93, 0.35);
+
 float hash21(vec2 p){
   p = fract(p * 234.56);
   p += dot(p, p + 34.56);
@@ -50,73 +54,33 @@ float noise(vec2 p)
   return sin(p.x * 10.0) * sin(p.y * (3.0 + sin(time * 0.090909))) + 0.2; 
 }
 
-mat2 rotate(float angle)
-{
-  float c = cos(angle);
-  float s = sin(angle);
-  return mat2(c, -s, s, c);
-}
-
 float fbm(vec2 p)
 {
   p *= 1.1;
   float f = 0.0;
   float amp = 0.5 * uNoiseAmp;
   
-  mat2 modify0 = rotate(time * 0.02);
   f += amp * noise(p);
-  p = modify0 * p * 2.0;
-  amp *= 0.454545;
+  p = rot1 * p * 2.0;
+  amp *= 0.45;
   
-  mat2 modify1 = rotate(time * 0.02);
   f += amp * noise(p);
-  p = modify1 * p * 2.0;
-  amp *= 0.454545;
+  p = rot2 * p * 2.0;
+  amp *= 0.45;
   
-  mat2 modify2 = rotate(time * 0.08);
   f += amp * noise(p);
   
   return f;
 }
 
-float pattern(vec2 p, out vec2 q, out vec2 r) {
-  vec2 offset1 = vec2(1.0);
-  vec2 offset0 = vec2(0.0);
-  mat2 rot01 = rotate(0.1 * time);
-  mat2 rot1 = rotate(0.1);
-  
-  q = vec2(fbm(p + offset1), fbm(rot01 * p + offset1));
-  r = vec2(fbm(rot1 * q + offset0), fbm(q + offset0));
-  return fbm(p + r);
+float pattern(vec2 p) {
+  // Simplified pattern: directly use 3-octave FBM.
+  // Avoids 5 calls to FBM and domain warping which is expensive and imperceptible on a discrete grid background.
+  return fbm(p);
 }
 
-float digit(vec2 p){
-    vec2 grid = uGridMul * 15.0;
-    vec2 s = floor(p * grid) / grid;
-    p = p * grid;
-    vec2 q, r;
-    float intensity = pattern(s * 0.1, q, r) * 1.3 - 0.03;
-    
-    if(uUseMouse > 0.5){
-        vec2 mouseWorld = uMouse * uScale;
-        float distToMouse = distance(s, mouseWorld);
-        float mouseInfluence = exp(-distToMouse * 8.0) * uMouseStrength * 10.0;
-        intensity += mouseInfluence;
-        
-        float ripple = sin(distToMouse * 20.0 - iTime * 5.0) * 0.1 * mouseInfluence;
-        intensity += ripple;
-    }
-    
-    if(uUsePageLoadAnimation > 0.5){
-        float cellRandom = fract(sin(dot(s, vec2(12.9898, 78.233))) * 43758.5453);
-        float cellDelay = cellRandom * 0.8;
-        float cellProgress = clamp((uPageLoadProgress - cellDelay) / 0.2, 0.0, 1.0);
-        
-        float fadeAlpha = smoothstep(0.0, 1.0, cellProgress);
-        intensity *= fadeAlpha;
-    }
-    
-    p = fract(p);
+float digitShape(vec2 gp, float intensity) {
+    vec2 p = fract(gp);
     p *= uDigitSize;
     
     float px5 = p.x * 5.0;
@@ -148,7 +112,6 @@ float displace(vec2 look)
 }
 
 vec3 getColor(vec2 p){
-    
     float bar = step(mod(p.y + time * 20.0, 1.0), 0.2) * 0.4 + 1.0;
     bar *= uScanlineIntensity;
     
@@ -160,12 +123,47 @@ vec3 getColor(vec2 p){
       p.x += extra;
     }
 
-    float middle = digit(p);
+    vec2 grid = uGridMul * 15.0;
+    vec2 s = floor(p * grid) / grid;
+    
+    // Evaluate intensity ONCE for the center of this cell
+    float intensity = pattern(s * 0.1) * 1.3 - 0.03;
+    
+    if(uUseMouse > 0.5){
+        vec2 mouseWorld = uMouse * uScale;
+        float distToMouse = distance(s, mouseWorld);
+        float mouseInfluence = exp(-distToMouse * 8.0) * uMouseStrength * 10.0;
+        intensity += mouseInfluence;
+        
+        float ripple = sin(distToMouse * 20.0 - iTime * 5.0) * 0.1 * mouseInfluence;
+        intensity += ripple;
+    }
+    
+    if(uUsePageLoadAnimation > 0.5){
+        float cellRandom = fract(sin(dot(s, vec2(12.9898, 78.233))) * 43758.5453);
+        float cellDelay = cellRandom * 0.8;
+        float cellProgress = clamp((uPageLoadProgress - cellDelay) / 0.2, 0.0, 1.0);
+        
+        float fadeAlpha = smoothstep(0.0, 1.0, cellProgress);
+        intensity *= fadeAlpha;
+    }
+
+    // Evaluate digit shapes using the same cell intensity
+    vec2 gp = p * grid;
+    float middle = digitShape(gp, intensity);
     
     const float off = 0.002;
-    float sum = digit(p + vec2(-off, -off)) + digit(p + vec2(0.0, -off)) + digit(p + vec2(off, -off)) +
-                digit(p + vec2(-off, 0.0)) + digit(p + vec2(0.0, 0.0)) + digit(p + vec2(off, 0.0)) +
-                digit(p + vec2(-off, off)) + digit(p + vec2(0.0, off)) + digit(p + vec2(off, off));
+    vec2 g_off = vec2(off) * grid;
+    
+    float sum = digitShape(gp + vec2(-g_off.x, -g_off.y), intensity) +
+                digitShape(gp + vec2(0.0, -g_off.y), intensity) +
+                digitShape(gp + vec2(g_off.x, -g_off.y), intensity) +
+                digitShape(gp + vec2(-g_off.x, 0.0), intensity) +
+                digitShape(gp, intensity) +
+                digitShape(gp + vec2(g_off.x, 0.0), intensity) +
+                digitShape(gp + vec2(-g_off.x, g_off.y), intensity) +
+                digitShape(gp + vec2(0.0, g_off.y), intensity) +
+                digitShape(gp + vec2(g_off.x, g_off.y), intensity);
     
     vec3 baseColor = vec3(0.9) * middle + sum * 0.1 * vec3(1.0) * bar;
     return baseColor;
@@ -234,7 +232,7 @@ export default function FaultyTerminal({
   tint = '#ffffff',
   mouseReact = true,
   mouseStrength = 0.2,
-  dpr = Math.min(window.devicePixelRatio || 1, 2),
+  dpr = 1,
   pageLoadAnimation = true,
   brightness = 1,
   className,

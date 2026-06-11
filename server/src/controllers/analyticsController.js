@@ -7,6 +7,11 @@ export const getOverview = asyncHandler(async (req, res) => {
   sendSuccess(res, overview);
 });
 
+export const getDashboard = asyncHandler(async (req, res) => {
+  const dashboard = await analyticsService.getAnalyticsDashboard(req.user._id);
+  sendSuccess(res, dashboard);
+});
+
 export const getInsights = asyncHandler(async (req, res) => {
   const insights = await analyticsService.getInsights(req.user._id);
   sendSuccess(res, insights);

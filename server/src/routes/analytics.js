@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getOverview,
+  getDashboard,
   getInsights,
   getSavingsPrediction,
   postChat,
@@ -12,6 +13,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get('/overview', getOverview);
+router.get('/dashboard', getDashboard);
 router.get('/insights', getInsights);
 router.get('/savings-prediction', getSavingsPrediction);
 router.post('/chat', postChat);

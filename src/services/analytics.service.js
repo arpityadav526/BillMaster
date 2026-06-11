@@ -4,6 +4,15 @@ export const getOverview = async () => {
   return await api.get('/analytics/overview');
 };
 
+/**
+ * Fetch the comprehensive analytics dashboard data.
+ * Returns: summary, healthScore, byCategory, monthlyTrend, weeklyPattern,
+ *          dailyHeatmap, topMerchants, paymentMethods, budgetComparison, categoryTrends
+ */
+export const getDashboard = async () => {
+  return await api.get('/analytics/dashboard');
+};
+
 export const getInsights = async () => {
   return await api.get('/analytics/insights');
 };

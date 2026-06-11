@@ -1,0 +1,229 @@
+===============================================================================
+                    BILLMASTER PROJECT SITUATION REPORT
+                      Current Date: June 11, 2026
+===============================================================================
+
+PROJECT OVERVIEW
+-----------------
+BillMaster is a full-stack finance management platform featuring:
+- ML-powered expense insights and anomaly detection
+- Real-time notifications via WebSockets
+- Premium dark-first UI with modern design
+- Multi-platform support (Web, Flutter mobile app)
+
+TECHNOLOGY STACK
+-----------------
+
+FRONTEND (React Web App):
+- React 19.2.5 with Vite 8.0.11
+- React Router 7.15.0
+- Tailwind CSS 4.2.4
+- Framer Motion 12.38.0 (animations)
+- Lucide React 1.14.0 (icons)
+- Recharts 3.8.1 (data visualization)
+- Axios 1.16.0 (API client)
+- Socket.io Client 4.8.3 (real-time communication)
+- Running on: http://localhost:5173
+
+BACKEND (Express.js API):
+- Node.js with Express 5.1.0
+- Mongoose 8.15.1 (MongoDB ODM)
+- Socket.io 4.8.3 (WebSockets)
+- JWT authentication (jsonwebtoken 9.0.2)
+- Nodemailer 8.0.7 (email notifications)
+- Node-cron 4.2.1 (scheduled tasks)
+- Helmet 8.1.0 (security)
+- Rate limiting and CORS configured
+- Running on: http://localhost:5001
+
+ML SERVICE (FastAPI/Python):
+- Python with FastAPI (Uvicorn server)
+- Pandas and Scikit-learn for data analysis
+- Anomaly detection and spending insights
+- Running on: http://localhost:8000
+
+MOBILE APP (Flutter):
+- Flutter SDK ^3.11.4
+- Google Fonts 8.1.0
+- FL Chart 1.2.0 (charts)
+- Lucide Icons 0.257.0
+- Go Router 17.2.3 (navigation)
+- Provider 6.1.5+1 (state management)
+- Shared Preferences 2.5.5
+
+CURRENT PORT CONFIGURATION
+--------------------------
+- Frontend (Vite): 5173
+- Backend (Express): 5001 (changed from 5000 due to AirPlay conflict on macOS)
+- ML Service (FastAPI): 8000
+- MongoDB: Default port (27017)
+
+PROJECT STRUCTURE
+-----------------
+
+ROOT DIRECTORY:
+- src/                    - React frontend source code
+- server/                 - Express.js backend API
+- ml-service/             - Python ML service
+- billmaster_app/         - Flutter mobile application
+- public/                 - Static assets
+- uploads/                - File storage (avatars, CSVs, receipts)
+
+FRONTEND (src/):
+- components/
+  - layout/               - DashboardLayout, ParticleBackground
+  - landing/              - Landing page components
+  - ui/                   - Button, Card, Input, Modal, etc.
+- context/                - AuthContext, ThemeContext
+- pages/                  - DashboardPage, AnalyticsPage, ExpensesPage, etc.
+- services/               - API services (api.js, auth.service.js, etc.)
+- utils/                  - Utility functions
+- App.jsx                 - Main React application
+- main.jsx                - Entry point
+
+BACKEND (server/):
+- server.js               - Server entry point
+- src/
+  - app.js                - Express app configuration
+  - controllers/          - Route handlers
+  - models/               - Mongoose models (User, Expense, etc.)
+  - routes/               - API routes (auth, expenses, analytics, users)
+  - services/             - Business logic layer
+  - middleware/           - Auth, error handling middleware
+  - config/               - Database and app configuration
+  - jobs/                 - Scheduled tasks and seed data
+  - validators/           - Input validation
+- uploads/
+  - avatars/
+  - csv/
+  - receipts/
+
+FEATURES IMPLEMENTED
+--------------------
+✅ Authentication System
+   - JWT-based login/register
+   - bcrypt password hashing
+   - Protected routes
+   - Token management
+
+✅ Core Financial Features
+   - Expense tracking with categories
+   - Budget management with progress tracking
+   - Budget Guard alerts
+   - Income tracking
+   - Dashboard with real-time stats
+
+✅ Analytics & Insights
+   - Monthly spending analysis
+   - Anomaly detection (ML-powered)
+   - Weekly/monthly insights
+   - Spending trends visualization
+   - Budget vs actual comparisons
+
+✅ Real-time Features
+   - WebSocket notifications
+   - Live dashboard updates
+   - Expense alerts
+
+✅ Data Management
+   - CSV import/export
+   - Receipt upload (Cloudinary integration)
+   - Avatar management
+
+✅ Scheduled Tasks
+   - Monthly reports
+   - Weekly insights
+   - End-of-month reminders
+   - Salary alerts
+
+✅ User Experience
+   - Onboarding wizard
+   - Dark-first UI with glassmorphism
+   - Responsive design
+   - Smooth animations (Framer Motion)
+
+CURRENT STATUS
+--------------
+✅ All services are running and operational
+✅ MongoDB connected successfully
+✅ Schedulers initialized and active
+✅ Frontend accessible at http://localhost:5173
+✅ Backend API accessible at http://localhost:5001
+✅ Health check endpoint: http://localhost:5001/api/health
+✅ Development environment fully configured
+
+RUNNING COMMANDS
+----------------
+Start all services: npm run dev
+Start frontend only: npm run dev:frontend
+Start backend only: npm run dev:backend
+Start ML service only: npm run dev:ml
+Build for production: npm run build
+Run tests: npm test
+
+DATABASE
+--------
+- MongoDB running on localhost
+- Collections: Users, Expenses, Notifications, Analytics
+- Indexes configured for performance
+- Seed data available in server/src/jobs/seed.js
+
+DEPLOYMENT CONFIGURATION
+--------------------------
+- render.yaml (Render.com deployment)
+- vercel.json (Vercel deployment for frontend)
+- Environment variables configured for both services
+
+REPOSITORY FILES
+----------------
+- .gitignore configured
+- ESLint configured for both frontend and backend
+- Vite configuration optimized
+- Comprehensive README.md with setup instructions
+- Technical documentation in info.md
+
+MOBILE APP STATUS
+------------------
+Flutter app structure created with:
+- Basic dependencies installed
+- iOS and Android configuration
+- Navigation set up with Go Router
+- Chart components ready
+- State management with Provider
+
+DEV NOTES
+---------
+- Development server properly configured to kill existing processes on ports 5173, 5001, 8000
+- Concurrent execution of all services via npm run dev
+- Hot reload enabled for all services
+- Error handling middleware configured
+- API proxy configured in vite.config.js
+
+KNOWN CONFIGURATION
+-------------------
+Frontend .env: VITE_API_URL
+Backend server/.env: PORT, MONGODB_URI, JWT_SECRET, CLIENT_URL
+All services configured for development mode
+
+TECHNICAL DEBT & CONSIDERATIONS
+--------------------------------
+- ML service anomaly detection algorithm may need fine-tuning
+- Mobile app development in progress
+- Email templates may need customization
+- Rate limiting thresholds may need adjustment based on usage
+- Consider implementing API rate limiting per user
+
+NEXT POTENTIAL ENHANCEMENTS
+----------------------------
+- Enhanced ML models for better predictions
+- Multi-currency support
+- Advanced analytics and reporting
+- Mobile app feature parity with web
+- Export to PDF reports
+- Budget recommendations
+- Financial goals tracking
+- Investment tracking integration
+
+===============================================================================
+                            END OF REPORT
+===============================================================================
