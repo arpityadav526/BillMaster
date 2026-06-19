@@ -9,7 +9,6 @@ import { getCurrencySymbol, formatAmount } from '../utils/currency'
 import * as analyticsService from '../services/analytics.service'
 
 import HealthGauge from './analytics/HealthGauge'
-import AIChatWidget from './analytics/AIChatWidget'
 import SpendingHeatmap from './analytics/SpendingHeatmap'
 import CategoryTrends from './analytics/CategoryTrends'
 import BudgetPanel from './analytics/BudgetPanel'
@@ -84,12 +83,12 @@ export default function AnalyticsPage() {
     <DashboardLayout>
       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 tracking-tight">Analytics Studio</h1>
-          <p className="text-sm text-surface-400">Deep insights into your financial behavior</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2 tracking-tight font-sora">Analytics Studio</h1>
+          <p className="text-surface-400 font-dm-sans">Deep insights into your financial behavior</p>
         </div>
         <div className="flex gap-2">
-          <Badge variant="green">ML Powered</Badge>
-          <Badge variant="blue">Real-time</Badge>
+          <Badge variant="green" className="shadow-[0_0_15px_rgba(16,185,129,0.2)]">ML Powered</Badge>
+          <Badge variant="blue" className="shadow-[0_0_15px_rgba(59,130,246,0.2)]">Real-time</Badge>
         </div>
       </div>
 
@@ -150,13 +149,13 @@ export default function AnalyticsPage() {
             </motion.div>
           </div>
 
-          {/* Main Charts & Heatmap Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 stat-card-new p-6">
+          {/* Main Charts Row */}
+          <div className="grid grid-cols-1 mb-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card rounded-2xl p-6 border border-white/5 shadow-xl">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Income vs Expenses</h3>
-                  <p className="text-xs text-surface-400 mt-1">12-month historical performance</p>
+                  <h3 className="text-xl font-bold text-white font-sora mb-1">Income vs Expenses</h3>
+                  <p className="text-sm text-surface-400 font-dm-sans">12-month historical performance</p>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={260}>
@@ -174,16 +173,17 @@ export default function AnalyticsPage() {
                 </AreaChart>
               </ResponsiveContainer>
             </motion.div>
+          </div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="stat-card-new p-6 flex flex-col">
-              <h3 className="text-lg font-semibold text-white mb-1">Spending Heatmap</h3>
-              <p className="text-xs text-surface-400 mb-6">Last 90 days activity</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="glass-card rounded-2xl p-6 flex flex-col border border-white/5 shadow-xl">
+              <h3 className="text-xl font-bold text-white mb-1 font-sora">Spending Heatmap</h3>
+              <p className="text-sm text-surface-400 mb-6 font-dm-sans">Last 90 days activity</p>
               
               <div className="flex-1 flex flex-col justify-center overflow-x-auto custom-scrollbar pb-4">
                 <SpendingHeatmap data={data?.dailyHeatmap} currencySymbol={currencySymbol} />
               </div>
             </motion.div>
-          </div>
 
           {/* Deep Dives Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -236,17 +236,14 @@ export default function AnalyticsPage() {
             </motion.div>
           </div>
 
-          {/* Budgets & AI Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="stat-card-new p-6">
-              <h3 className="text-lg font-semibold text-white mb-1">Budget Adherence</h3>
-              <p className="text-xs text-surface-400 mb-6">Current month progress</p>
+            {/* Budget Panel */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="glass-card rounded-2xl p-6 border border-white/5 shadow-xl lg:col-span-2">
+              <h3 className="text-xl font-bold text-white mb-1 font-sora">Budget Adherence</h3>
+              <p className="text-sm text-surface-400 mb-6 font-dm-sans">Current month progress</p>
               <div className="max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
                 <BudgetPanel budgets={data?.budgetComparison} currency={currencyCode} />
               </div>
             </motion.div>
-
-            <AIChatWidget />
           </div>
         </>
       )}

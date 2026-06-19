@@ -107,37 +107,37 @@ export default function ExpensesPage() {
   return (
     <DashboardLayout onAddExpense={() => setShowAddModal(true)}>
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">Expenses</h1>
-        <p className="text-sm text-surface-700">Manage and track all your expenses</p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2 font-sora">Expenses Database</h1>
+        <p className="text-surface-400 font-dm-sans">Manage and track all your transactions in one place</p>
       </div>
 
       {/* Filters Bar */}
-      <div className="stat-card-new mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-700" />
-            <input type="text" placeholder="Search expenses..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} className="input-field !pl-10" />
+      <div className="glass-card rounded-2xl p-5 mb-6 border border-white/5 shadow-lg">
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
+            <input type="text" placeholder="Search by description or merchant..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }} className="w-full pl-11 pr-4 py-3 rounded-xl border border-white/10 bg-surface-900/50 text-white placeholder-surface-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-dm-sans text-sm" />
           </div>
-          <div className="flex gap-3">
-            <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} className="input-field appearance-none cursor-pointer !w-auto min-w-[160px]">
+          <div className="flex gap-3 w-full sm:w-auto">
+            <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1) }} className="appearance-none py-3 px-4 rounded-xl border border-white/10 bg-surface-900/50 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-dm-sans text-sm cursor-pointer min-w-[160px]">
               <option value="all" className="bg-surface-900">All Categories</option>
               {categories.map(c => <option key={c.id} value={c.id} className="bg-surface-900">{c.name}</option>)}
             </select>
-            <Button onClick={() => setShowAddModal(true)} size="md"><Plus className="w-4 h-4" /> Add</Button>
+            <Button onClick={() => setShowAddModal(true)} size="md" className="!rounded-xl !bg-emerald-500 hover:!bg-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.3)]"><Plus className="w-4 h-4 mr-1" /> Add New</Button>
           </div>
         </div>
 
         {/* Active filters */}
         {(search || categoryFilter !== 'all') && (
           <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
-            <span className="text-xs text-surface-700">Filters:</span>
+            <span className="text-xs font-semibold text-surface-500 uppercase tracking-wider font-dm-sans">Active Filters:</span>
             {search && (
-              <button onClick={() => setSearch('')} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 transition-colors cursor-pointer">
+              <button onClick={() => setSearch('')} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer font-medium">
                 &quot;{search}&quot; <X className="w-3 h-3" />
               </button>
             )}
             {categoryFilter !== 'all' && (
-              <button onClick={() => setCategoryFilter('all')} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg bg-accent-500/10 text-accent-400 hover:bg-accent-500/20 transition-colors cursor-pointer">
+              <button onClick={() => setCategoryFilter('all')} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer font-medium">
                 {categories.find(c => c.id === categoryFilter)?.name} <X className="w-3 h-3" />
               </button>
             )}
@@ -146,16 +146,16 @@ export default function ExpensesPage() {
       </div>
 
       {/* Table */}
-      <div className="stat-card-new">
+      <div className="glass-card rounded-2xl border border-white/5 shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
+            <thead className="bg-surface-900/40">
               <tr className="border-b border-white/5">
-                <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Description</th>
-                <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Category</th>
-                <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Date</th>
-                <th className="text-right text-xs font-medium text-surface-700 pb-3 pr-4">Amount ({currencySymbol})</th>
-                <th className="text-right text-xs font-medium text-surface-700 pb-3">Actions</th>
+                <th className="text-left text-xs font-semibold text-surface-400 py-4 pl-6 pr-4 uppercase tracking-wider font-dm-sans">Description</th>
+                <th className="text-left text-xs font-semibold text-surface-400 py-4 pr-4 uppercase tracking-wider font-dm-sans">Category</th>
+                <th className="text-left text-xs font-semibold text-surface-400 py-4 pr-4 uppercase tracking-wider font-dm-sans">Date</th>
+                <th className="text-right text-xs font-semibold text-surface-400 py-4 pr-4 uppercase tracking-wider font-dm-sans">Amount ({currencySymbol})</th>
+                <th className="text-right text-xs font-semibold text-surface-400 py-4 pr-6 uppercase tracking-wider font-dm-sans">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -169,15 +169,15 @@ export default function ExpensesPage() {
                 expenses.map(tx => {
                   const cat = categories.find(c => c.id === tx.category)
                   return (
-                    <tr key={tx._id} className="hover:bg-white/[0.02] transition-colors group">
-                      <td className="py-3.5 pr-4"><span className="text-sm text-white font-medium">{tx.description}</span></td>
-                      <td className="py-3.5 pr-4">{cat ? <Badge variant={catBadgeMap[tx.category] || 'blue'}>{cat.icon} {cat.name}</Badge> : <Badge variant="blue">{tx.category}</Badge>}</td>
-                      <td className="py-3.5 pr-4"><span className="text-sm text-surface-200">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></td>
-                      <td className="py-3.5 pr-4 text-right"><span className="text-sm font-semibold text-white">-{formatAmount(tx.amount, user?.currency)}</span></td>
-                      <td className="py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEdit(tx)} className="p-1.5 rounded-lg hover:bg-white/5 text-surface-700 hover:text-primary-400 transition-colors cursor-pointer"><Edit3 className="w-4 h-4" /></button>
-                          <button onClick={() => openDelete(tx)} className="p-1.5 rounded-lg hover:bg-white/5 text-surface-700 hover:text-rose-400 transition-colors cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                    <tr key={tx._id} className="hover:bg-white/[0.04] transition-colors group border-b border-white/5 last:border-0">
+                      <td className="py-4 pl-6 pr-4"><span className="text-sm text-white font-medium font-dm-sans">{tx.description}</span></td>
+                      <td className="py-4 pr-4">{cat ? <Badge variant={catBadgeMap[tx.category] || 'blue'} className="shadow-sm">{cat.icon} {cat.name}</Badge> : <Badge variant="blue">{tx.category}</Badge>}</td>
+                      <td className="py-4 pr-4"><span className="text-sm text-surface-300 font-dm-sans">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></td>
+                      <td className="py-4 pr-4 text-right"><span className="text-sm font-bold text-white font-dm-sans">-{formatAmount(tx.amount, user?.currency)}</span></td>
+                      <td className="py-4 pr-6 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEdit(tx)} className="p-2 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/5 text-surface-300 hover:text-emerald-400 transition-colors cursor-pointer shadow-sm"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => openDelete(tx)} className="p-2 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/5 text-surface-300 hover:text-rose-400 transition-colors cursor-pointer shadow-sm"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </td>
                     </tr>

@@ -39,6 +39,10 @@
   --color-surface-850: #172033;
   --color-surface-900: #0f172a;
   --color-surface-950: #020617;
+
+  /* Typography */
+  --font-sora: "Sora", sans-serif;
+  --font-dm-sans: "DM Sans", sans-serif;
 }
 
 /* Light Mode Variables */

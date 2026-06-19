@@ -10,6 +10,7 @@ import ReceiptsPage from './pages/ReceiptsPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import SettingsPage from './pages/SettingsPage'
 import ConnectedAccountsPage from './pages/ConnectedAccountsPage'
+import AdvisorPage from './pages/AdvisorPage'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/expenses" element={<ExpensesPage />} />
         <Route path="/receipts" element={<ReceiptsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/advisor" element={<AdvisorPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<SettingsPage />} />
         <Route path="/connected-accounts" element={<ConnectedAccountsPage />} />

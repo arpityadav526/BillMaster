@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Upload, CreditCard, Settings,
   ChevronLeft, ChevronRight, TrendingUp, Menu, X, Bell, Search, Plus,
-  Link2, CheckCircle2, Info, AlertTriangle, Lightbulb, User as UserIcon
+  Link2, CheckCircle2, Info, AlertTriangle, Lightbulb, User as UserIcon, Brain
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
@@ -12,12 +12,12 @@ import FaultyTerminal from '../ui/FaultyTerminal'
 import LogoutButton from '../ui/LogoutButton'
 import logo from '../../assets/logo.jpeg'
 
-// ========== NAV ITEMS ==========
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/expenses', label: 'Expenses', icon: CreditCard },
   { path: '/receipts', label: 'Receipts', icon: Upload },
   { path: '/analytics', label: 'Analytics', icon: TrendingUp },
+  { path: '/advisor', label: 'AI Advisor', icon: Brain },
   { path: '/connected-accounts', label: 'Linked Apps', icon: Link2 },
   { path: '/settings', label: 'Settings', icon: Settings },
 ]

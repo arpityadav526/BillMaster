@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
-import { StatCard, ProgressBar, Modal, Badge, Input, Button, Skeleton } from '../components/ui/index'
+import { ProgressBar, Modal, Badge, Input, Button, Skeleton } from '../components/ui/index'
 import { categories } from '../data/mockData'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Plus, ArrowUpRight, Lightbulb, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
@@ -207,9 +207,24 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout onAddExpense={() => setShowAddModal(true)}>
-      <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">Dashboard</h1>
-        <p className="text-sm text-surface-700">Welcome back! Here&apos;s your financial overview.</p>
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2 font-sora">Overview</h1>
+          <p className="text-surface-400 font-dm-sans">Your AI-powered financial summary</p>
+        </div>
+        
+        {/* AI Quick Insight Banner */}
+        <div className="glass-card rounded-2xl p-4 border border-emerald-500/20 bg-emerald-500/5 max-w-lg flex items-start gap-3 animate-fade-in">
+          <div className="mt-0.5 p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+            <Lightbulb className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white font-sora mb-1">AI Financial Pulse</h4>
+            <p className="text-xs text-surface-200 leading-relaxed font-dm-sans">
+              You're currently spending <strong>12% less</strong> than your historical average for the first half of the month. Keep it up!
+            </p>
+          </div>
+        </div>
       </div>
 
       {showSetupWizard && (
@@ -254,10 +269,21 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {isLoading 
-          ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />)
-          : data.stats.map((c, i) => <StatCard key={c.title} {...c} delay={i * 100} />)
+          ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)
+          : data.stats.map((c, i) => (
+            <div key={c.title} className="glass-card rounded-2xl p-5 border border-white/5 relative overflow-hidden group hover:border-white/10 transition-colors animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-emerald-500/10 transition-colors" />
+              <p className="text-sm font-semibold text-surface-400 mb-2 font-dm-sans">{c.title}</p>
+              <h2 className="text-3xl font-bold text-white mb-4 font-sora tracking-tight">{c.value}</h2>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold px-2 py-1 rounded-md ${c.trend === 'up' ? 'bg-emerald-500/10 text-emerald-400' : c.trend === 'down' ? 'bg-rose-500/10 text-rose-400' : 'bg-surface-800 text-surface-300'}`}>
+                  {c.change}
+                </span>
+              </div>
+            </div>
+          ))
         }
       </div>
 
@@ -377,13 +403,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="stat-card-new animate-slide-up opacity-0" style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
-        <div className="flex items-center justify-between mb-6">
-          <div><h3 className="text-lg font-semibold text-white">Recent Transactions</h3><p className="text-xs text-surface-700 mt-1">Your latest expense activity</p></div>
-          <a href="/expenses" className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1 transition-colors">View All <ArrowUpRight className="w-3 h-3" /></a>
+      <div className="stat-card-new rounded-2xl p-6 border border-white/5 glass-card animate-slide-up opacity-0" style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl font-bold text-white font-sora tracking-tight mb-1">Recent Transactions</h3>
+            <p className="text-sm text-surface-400 font-dm-sans">Your latest expense activity</p>
+          </div>
+          <a href="/expenses" className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors">
+            View All <ArrowUpRight className="w-4 h-4" />
+          </a>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto">          <table className="w-full">
             <thead><tr className="border-b border-white/5">
               <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Description</th>
               <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Category</th>
