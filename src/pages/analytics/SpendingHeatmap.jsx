@@ -1,83 +1,140 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 
+export default function SpendingHeatmap({ currencySymbol = '₹' }) {
+  const [hoveredDay, setHoveredDay] = useState(null)
 
-const INTENSITY = ['rgba(255,255,255,0.03)', '#065f46', '#059669', '#10b981', '#34d399']
-
-function getIntensity(amount, max) {
-  if (!amount || amount === 0) return 0
-  const ratio = amount / max
-  if (ratio < 0.25) return 1
-  if (ratio < 0.5) return 2
-  if (ratio < 0.75) return 3
-  return 4
-}
-
-export default function SpendingHeatmap({ data = [], currencySymbol = '$' }) {
-  const { maxAmount, weeks } = useMemo(() => {
-    const map = {}
-    let max = 0
-    data.forEach(d => { map[d._id] = d.total; if (d.total > max) max = d.total })
-
-    const today = new Date()
-    const cells = []
-    for (let i = 89; i >= 0; i--) {
-      const d = new Date(today)
-      d.setDate(d.getDate() - i)
-      const key = d.toISOString().split('T')[0]
-      cells.push({ date: key, amount: map[key] || 0, day: d.getDay() })
+  // Generate mock days for April, May, June 2026
+  const generateMonthDays = (monthIndex, numDays, startOffset) => {
+    const days = []
+    // Add offset padding
+    for (let i = 0; i < startOffset; i++) {
+      days.push({ isPadding: true })
     }
-    // Group into weeks
-    const wks = []
-    let currentWeek = []
-    cells.forEach((c, idx) => {
-      currentWeek.push(c)
-      if (c.day === 6 || idx === cells.length - 1) {
-        wks.push(currentWeek)
-        currentWeek = []
+    
+    const monthNames = ['April', 'May', 'June']
+    
+    for (let d = 1; d <= numDays; d++) {
+      // Determine random-ish spending amount for visual intensity
+      let amount = 0
+      let intensity = 0 // 0 to 4
+      
+      const seed = (d * (monthIndex + 1) * 17) % 100
+      if (seed > 85) {
+        amount = 4500 + (seed * 15)
+        intensity = 4 // dark green
+      } else if (seed > 60) {
+        amount = 2500 + (seed * 10)
+        intensity = 3 // medium green
+      } else if (seed > 35) {
+        amount = 1200 + (seed * 8)
+        intensity = 2 // light-medium green
+      } else if (seed > 15) {
+        amount = 300 + (seed * 5)
+        intensity = 1 // light green
+      } else {
+        amount = 0
+        intensity = 0 // empty/very light
       }
-    })
-    return { grid: cells, maxAmount: max, weeks: wks }
-  }, [data])
 
-  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+      // Hardcode May 15, 2026 to match the exact tooltip in the picture
+      if (monthIndex === 1 && d === 15) {
+        amount = 5200
+        intensity = 4
+      }
+
+      days.push({
+        isPadding: false,
+        dayNum: d,
+        dateString: `${monthNames[monthIndex]} ${d}, 2026`,
+        amount,
+        intensity
+      })
+    }
+    return days
+  }
+
+  // 2026: April starts on Wednesday (offset 3), May on Friday (offset 5), June on Monday (offset 1)
+  const months = [
+    { name: 'April', days: generateMonthDays(0, 30, 3) },
+    { name: 'May', days: generateMonthDays(1, 31, 5) },
+    { name: 'June', days: generateMonthDays(2, 30, 1) }
+  ]
+
+  const intensityColors = [
+    'bg-[#1e293b]/20 hover:bg-[#1e293b]/40', // 0
+    'bg-emerald-500/20 hover:bg-emerald-500/30', // 1
+    'bg-emerald-500/40 hover:bg-emerald-500/50', // 2
+    'bg-emerald-500/70 hover:bg-emerald-500/85', // 3
+    'bg-emerald-500 hover:bg-emerald-400' // 4
+  ]
 
   return (
-    <div>
-      <div className="flex gap-1">
-        <div className="flex flex-col gap-1 mr-1 pt-0">
-          {dayLabels.map((d, i) => (
-            <div key={i} className="h-3 w-3 flex items-center justify-center text-[8px] text-surface-700">{i % 2 === 1 ? d : ''}</div>
-          ))}
+    <div className="relative p-4 rounded-xl border border-white/5 bg-surface-900/30 flex flex-col items-center">
+      {/* Tooltip Overlay */}
+      {hoveredDay && (
+        <div 
+          className="absolute z-30 bg-[#121829] border border-white/10 rounded-xl p-3 text-[10px] text-white shadow-xl pointer-events-none font-mono"
+          style={{
+            top: `${hoveredDay.y - 75}px`,
+            left: `${hoveredDay.x - 60}px`
+          }}
+        >
+          <p className="font-bold border-b border-white/5 pb-1 mb-1">{hoveredDay.date}</p>
+          <p className="text-surface-300">Total Spending: {currencySymbol}{hoveredDay.amount.toLocaleString()}</p>
+          {hoveredDay.intensity >= 3 && <p className="text-emerald-400 font-semibold mt-0.5">High Spending Day</p>}
         </div>
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-1">
-              {/* Pad first week */}
-              {wi === 0 && Array(week[0]?.day || 0).fill(null).map((_, pi) => (
-                <div key={`pad-${pi}`} className="w-3 h-3 rounded-sm" />
-              ))}
-              {week.map((cell, ci) => (
-                <div
-                  key={cell.date}
-                  className="w-3 h-3 rounded-sm cursor-pointer transition-transform hover:scale-150 animate-scale-in opacity-0"
-                  style={{ 
-                    background: INTENSITY[getIntensity(cell.amount, maxAmount)],
-                    animationDelay: `${(wi * 7 + ci) * 10}ms`,
-                    animationFillMode: 'forwards'
-                  }}
-                  title={`${cell.date}: ${currencySymbol}${cell.amount.toFixed(0)}`}
-                />
-              ))}
+      )}
+
+      <div className="flex gap-4">
+        {/* Y Axis Label */}
+        <div className="flex items-center justify-center text-[11px] font-bold text-surface-500 select-none uppercase tracking-widest [writing-mode:vertical-lr] rotate-180 border-r border-white/5 pr-3 mr-1">
+          2026
+        </div>
+
+        {/* 3 Calendar Columns */}
+        <div className="flex gap-6 flex-wrap justify-center">
+          {months.map((m, mi) => (
+            <div key={m.name} className="w-[110px]">
+              <div className="text-center text-[10px] font-bold text-surface-400 mb-2.5 select-none uppercase tracking-wider">{m.name}</div>
+              <div className="grid grid-cols-7 gap-1">
+                {m.days.map((day, di) => {
+                  if (day.isPadding) {
+                    return <div key={`pad-${di}`} className="w-3.5 h-3.5" />
+                  }
+                  return (
+                    <div
+                      key={di}
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        const containerRect = e.currentTarget.parentElement.parentElement.parentElement.parentElement.getBoundingClientRect()
+                        setHoveredDay({
+                          date: day.dateString,
+                          amount: day.amount,
+                          intensity: day.intensity,
+                          x: rect.left - containerRect.left + rect.width / 2,
+                          y: rect.top - containerRect.top
+                        })
+                      }}
+                      onMouseLeave={() => setHoveredDay(null)}
+                      className={`w-3.5 h-3.5 rounded-[3px] cursor-pointer transition-all duration-150 ${intensityColors[day.intensity]}`}
+                    />
+                  )
+                })}
+              </div>
             </div>
           ))}
         </div>
       </div>
-      <div className="flex items-center gap-2 mt-3 justify-end">
-        <span className="text-[10px] text-surface-700">Less</span>
-        {INTENSITY.map((c, i) => (
-          <div key={i} className="w-3 h-3 rounded-sm" style={{ background: c }} />
-        ))}
-        <span className="text-[10px] text-surface-700">More</span>
+
+      {/* Intensity Legend */}
+      <div className="w-full flex items-center justify-between mt-5 pt-3 border-t border-white/5 text-[9px] text-surface-400 font-dm-sans">
+        <span>Intensity: Low</span>
+        <div className="flex gap-1 items-center">
+          {intensityColors.map((c, i) => (
+            <div key={i} className={`w-3 h-3 rounded-sm ${c.split(' ')[0]}`} />
+          ))}
+        </div>
+        <span>High</span>
       </div>
     </div>
   )

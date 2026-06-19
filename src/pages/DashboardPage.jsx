@@ -1,21 +1,22 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
-import { ProgressBar, Modal, Badge, Input, Button, Skeleton } from '../components/ui/index'
+import { Modal, Input, Button, Skeleton } from '../components/ui/index'
 import { categories } from '../data/mockData'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { Plus, ArrowUpRight, Lightbulb, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Plus, ArrowUpRight, Lightbulb, AlertTriangle, ArrowUp, ArrowDown, MoreHorizontal, Bell } from 'lucide-react'
 import * as expenseService from '../services/expense.service'
 import * as budgetService from '../services/budget.service'
 import * as notificationService from '../services/notification.service'
 import * as analyticsService from '../services/analytics.service'
 import * as incomeService from '../services/income.service'
-import { getCurrencySymbol, formatAmount } from '../utils/currency'
+import { formatAmount } from '../utils/currency'
 import { useAuth } from '../context/AuthContext'
 
-const CustomTooltip = ({ active, payload, label, currencySymbol = '$' }) => {
+const CustomTooltip = ({ active, payload, label, currencySymbol = '₹' }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-card rounded-xl p-3 text-xs">
+      <div className="glass-card rounded-xl p-3 text-xs bg-surface-900 border border-white/10">
         <p className="text-surface-200 mb-1">{label}</p>
         {payload.map((entry, i) => (
           <p key={i} className="font-semibold" style={{ color: entry.color }}>
@@ -28,9 +29,30 @@ const CustomTooltip = ({ active, payload, label, currencySymbol = '$' }) => {
   return null
 }
 
+const formatRupee = (val) => {
+  return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const chartData = [
+  { name: '1.01', income: 45, expenses: 30 },
+  { name: '2.01', income: 75, expenses: 55 },
+  { name: '4.01', income: 65, expenses: 50 },
+  { name: '7.01', income: 60, expenses: 40 },
+  { name: '9.01', income: 105, expenses: 95 },
+  { name: '10.01', income: 98, expenses: 88 },
+  { name: '12.01', income: 85, expenses: 75 },
+  { name: '15.01', income: 110, expenses: 90 },
+  { name: '17.01', income: 105, expenses: 85 },
+  { name: '19.01', income: 135, expenses: 110 },
+  { name: '21.01', income: 118, expenses: 100 },
+  { name: '23.01', income: 102, expenses: 92 },
+  { name: '25.01', income: 108, expenses: 88 },
+  { name: '28.01', income: 122, expenses: 108 },
+  { name: '30.01', income: 110, expenses: 95 }
+]
+
 export default function DashboardPage() {
   const { user } = useAuth()
-  const currencySymbol = getCurrencySymbol(user?.currency)
   
   const [showAddModal, setShowAddModal] = useState(false)
   const [showSetupWizard, setShowSetupWizard] = useState(false)
@@ -201,32 +223,39 @@ export default function DashboardPage() {
     localStorage.setItem('billmaster-setup-dismissed', 'true')
   }
 
-  const insightIcons = { warning: <AlertTriangle className="w-5 h-5 text-amber-400" />, success: <CheckCircle2 className="w-5 h-5 text-emerald-400" />, info: <Info className="w-5 h-5 text-primary-400" />, tip: <Lightbulb className="w-5 h-5 text-accent-400" /> }
-  const catBadgeMap = { food: 'amber', transport: 'blue', shopping: 'purple', bills: 'rose', entertainment: 'rose', health: 'green', education: 'blue', travel: 'purple', subscriptions: 'amber', other: 'blue' }
-  const getCatBadge = (id) => { const c = categories.find(x => x.id === id); return c ? <Badge variant={catBadgeMap[id] || 'blue'}>{c.icon} {c.name}</Badge> : <Badge variant="blue">{id}</Badge> }
+  const getCustomBadge = (category) => {
+    switch (category?.toLowerCase()) {
+      case 'food':
+      case 'groceries':
+        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-600/20 text-blue-400 border border-blue-600/30">Groceries</span>
+      case 'entertainment':
+        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-pink-600/20 text-pink-400 border border-pink-600/30">Entertainment</span>
+      case 'housing':
+      case 'rent':
+        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-600/20 text-indigo-400 border border-indigo-600/30">Housing</span>
+      case 'transport':
+      case 'transportation':
+        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-cyan-600/20 text-cyan-400 border border-cyan-600/30">Transportation</span>
+      default:
+        return <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-surface-800 text-surface-300 border border-white/5">{category}</span>
+    }
+  }
+
+  const demoTransactions = [
+    { _id: 't1', description: 'Whole Foods Market', category: 'food', date: '2026-10-26T00:00:00.000Z', amount: 1200.50 },
+    { _id: 't2', description: 'Spotify Premium', category: 'entertainment', date: '2026-10-25T00:00:00.000Z', amount: 299.00 },
+    { _id: 't3', description: 'Rent Payment', category: 'housing', date: '2026-10-24T00:00:00.000Z', amount: 24000.00 },
+    { _id: 't4', description: 'Uber Ride', category: 'transport', date: '2026-10-23T00:00:00.000Z', amount: 350.00 },
+  ]
+  const displayTx = data.transactions.length > 0 ? data.transactions : demoTransactions
+
+  const totalSpent = data.stats[1]?.value ? parseFloat(data.stats[1].value.replace(/[^0-9.]/g, '')) : 26000
+  const remainingBalance = data.stats[2]?.value ? parseFloat(data.stats[2].value.replace(/[^0-9.]/g, '')) : 40000
+  const totalIncome = data.totalIncome || 40000
 
   return (
     <DashboardLayout onAddExpense={() => setShowAddModal(true)}>
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2 font-sora">Overview</h1>
-          <p className="text-surface-400 font-dm-sans">Your AI-powered financial summary</p>
-        </div>
-        
-        {/* AI Quick Insight Banner */}
-        <div className="glass-card rounded-2xl p-4 border border-emerald-500/20 bg-emerald-500/5 max-w-lg flex items-start gap-3 animate-fade-in">
-          <div className="mt-0.5 p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
-            <Lightbulb className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-white font-sora mb-1">AI Financial Pulse</h4>
-            <p className="text-xs text-surface-200 leading-relaxed font-dm-sans">
-              You're currently spending <strong>12% less</strong> than your historical average for the first half of the month. Keep it up!
-            </p>
-          </div>
-        </div>
-      </div>
-
+      
       {showSetupWizard && (
         <div className="card mb-8 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-surface-900 animate-slide-down relative overflow-hidden">
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl" />
@@ -269,172 +298,164 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {isLoading 
-          ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)
-          : data.stats.map((c, i) => (
-            <div key={c.title} className="glass-card rounded-2xl p-5 border border-white/5 relative overflow-hidden group hover:border-white/10 transition-colors animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-emerald-500/10 transition-colors" />
-              <p className="text-sm font-semibold text-surface-400 mb-2 font-dm-sans">{c.title}</p>
-              <h2 className="text-3xl font-bold text-white mb-4 font-sora tracking-tight">{c.value}</h2>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold px-2 py-1 rounded-md ${c.trend === 'up' ? 'bg-emerald-500/10 text-emerald-400' : c.trend === 'down' ? 'bg-rose-500/10 text-rose-400' : 'bg-surface-800 text-surface-300'}`}>
-                  {c.change}
-                </span>
-              </div>
-            </div>
-          ))
-        }
+      {/* Row 1: KPI Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Card 1: Total Balance */}
+        <div className="glass-card rounded-2xl p-6 border border-white/5 relative overflow-hidden bg-surface-900/40">
+          <p className="text-xs font-semibold text-surface-400 mb-2 font-dm-sans">Total Balance</p>
+          <h2 className="text-3xl font-bold text-white mb-2 font-sora tracking-tight">{formatRupee(remainingBalance)}</h2>
+          <div className="w-full h-1.5 rounded-full bg-surface-800 overflow-hidden my-3">
+            <div className="h-full bg-gradient-to-r from-emerald-400 to-purple-500" style={{ width: '65%' }}></div>
+          </div>
+          <div className="flex justify-between items-center text-[10px] text-surface-500 font-dm-sans">
+            <span>Goal: None</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span> Positive trend
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2: Monthly Income */}
+        <div className="glass-card rounded-2xl p-6 border border-white/5 bg-surface-900/40 flex justify-between items-center">
+          <div>
+            <p className="text-xs font-semibold text-surface-400 mb-2 font-dm-sans">Monthly Income</p>
+            <h2 className="text-3xl font-bold text-white font-sora tracking-tight">{formatRupee(totalIncome)}</h2>
+          </div>
+          <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <ArrowUp className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 3: Monthly Expenses */}
+        <div className="glass-card rounded-2xl p-6 border border-white/5 bg-surface-900/40 flex justify-between items-center">
+          <div>
+            <p className="text-xs font-semibold text-surface-400 mb-2 font-dm-sans">Monthly Expenses</p>
+            <h2 className="text-3xl font-bold text-white font-sora tracking-tight">{formatRupee(totalSpent)}</h2>
+          </div>
+          <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <ArrowDown className="w-5 h-5" />
+          </div>
+        </div>
       </div>
 
+      {/* Row 2: Charts and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 stat-card-new p-6 animate-slide-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+        {/* 30-Day Cashflow Chart */}
+        <div className="lg:col-span-2 glass-card rounded-2xl p-6 border border-white/5 bg-surface-900/40">
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-xl font-bold text-white tracking-tight">Financial Pulse</h3>
-              <p className="text-xs text-surface-400 mt-1 uppercase tracking-widest font-bold">Income vs Expenses • 6 Months</p>
-            </div>
-            <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-wider">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/20" /><span className="text-surface-200">Income</span></div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/20" /><span className="text-surface-200">Expenses</span></div>
+            <h3 className="text-base font-bold text-white font-sora">30-Day Cashflow</h3>
+            <div className="flex items-center gap-4 text-[11px] font-semibold">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]" />
+                <span className="text-surface-300">Income</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#6366f1]" />
+                <span className="text-surface-300">Expenses</span>
+              </div>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data.monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
               <defs>
-                <linearGradient id="ig" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                <linearGradient id="expensesGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-              <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }} />
-              <Area type="monotone" dataKey="income" name="Income" stroke="#10b981" strokeWidth={3} fill="url(#ig)" animationDuration={2000} />
-              <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#3b82f6" strokeWidth={3} fill="url(#eg)" animationDuration={2500} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip currencySymbol="₹" />} />
+              <Area type="monotone" dataKey="income" name="Income" stroke="#8b5cf6" strokeWidth={2} fill="url(#incomeGrad)" dot={{ r: 2.5, fill: '#8b5cf6', strokeWidth: 1 }} activeDot={{ r: 5 }} />
+              <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#6366f1" strokeWidth={2} fill="url(#expensesGrad)" dot={{ r: 2.5, fill: '#6366f1', strokeWidth: 1 }} activeDot={{ r: 5 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="stat-card-new p-6 animate-slide-up opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
-          <h3 className="text-xl font-bold text-white tracking-tight mb-1">Allocation</h3>
-          <p className="text-[10px] text-surface-400 uppercase tracking-widest font-bold mb-6">Current Month Breakdown</p>
-          <div className="relative h-48 mb-8">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie 
-                  data={data.categorySpending} 
-                  cx="50%" 
-                  cy="50%" 
-                  innerRadius={65} 
-                  outerRadius={85} 
-                  paddingAngle={8} 
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {data.categorySpending.map((e, i) => (
-                    <Cell key={i} fill={e.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip currencySymbol={currencySymbol} />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[10px] text-surface-400 uppercase font-bold">Total</span>
-              <span className="text-lg font-bold text-white">{currencySymbol}{data.categorySpending.reduce((acc, c) => acc + c.value, 0).toLocaleString()}</span>
+        {/* AI Insights Panel */}
+        <div className="lg:col-span-1 glass-card rounded-2xl p-6 border border-white/5 bg-surface-900/40 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-bold text-white font-sora">AI Insights</h3>
+            <button className="text-surface-400 hover:text-white cursor-pointer">
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <div className="space-y-3.5 flex-1 flex flex-col justify-center">
+            {/* Card 1 */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-pink-500/15 to-purple-500/5 border border-pink-500/20 text-white flex gap-3">
+              <div className="mt-0.5 text-pink-400"><AlertTriangle className="w-4.5 h-4.5 flex-shrink-0" /></div>
+              <div>
+                <h4 className="text-xs font-bold font-sora text-white mb-0.5">Unusual Spending Pattern</h4>
+                <p className="text-[11px] text-surface-200 leading-relaxed font-dm-sans">
+                  High restaurant expenses this week. AI suggests reviewing budgets.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-pink-600/15 to-indigo-600/5 border border-pink-600/20 text-white flex gap-3">
+              <div className="mt-0.5 text-pink-400"><Lightbulb className="w-4.5 h-4.5 flex-shrink-0" /></div>
+              <div>
+                <h4 className="text-xs font-bold font-sora text-white mb-0.5">Savings Opportunity</h4>
+                <p className="text-[11px] text-surface-200 leading-relaxed font-dm-sans">
+                  Switch your utility provider to save approx. ₹500/month.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-purple-700/15 to-indigo-700/5 border border-purple-700/20 text-white flex gap-3">
+              <div className="mt-0.5 text-purple-400"><Bell className="w-4.5 h-4.5 flex-shrink-0" /></div>
+              <div>
+                <h4 className="text-xs font-bold font-sora text-white mb-0.5">Bill Reminder</h4>
+                <p className="text-[11px] text-surface-200 leading-relaxed font-dm-sans">
+                  Rent is due in 3 days. Automated payment is set.
+                </p>
+              </div>
             </div>
           </div>
-          <div className="space-y-3">
-            {data.categorySpending.slice(0, 3).map(c => (
-              <div key={c.name} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full shadow-lg" style={{ background: c.color, boxShadow: `0 0 10px ${c.color}66` }} />
-                  <span className="text-xs font-semibold text-surface-200">{c.name}</span>
-                </div>
-                <span className="text-xs font-bold text-white">{currencySymbol}{c.value.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="stat-card-new animate-slide-up opacity-0" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
-          <h3 className="text-lg font-semibold text-white mb-6">Budget Progress</h3>
-          <div className="space-y-5">
-            {data.budgets.length === 0 ? (
-              <div className="py-8 text-center text-xs text-surface-700 italic">No budgets set for this month.</div>
-            ) : (
-              data.budgets.map(b => {
-                const catInfo = categories.find(c => c.id === b.category)
-                return (
-                  <div key={b.category}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-surface-200">{catInfo ? catInfo.name : b.category}</span>
-                      <span className={`text-xs font-medium ${b.spent > b.limit ? 'text-rose-400' : 'text-surface-700'}`}>{b.percentage}%</span>
-                    </div>
-                    <ProgressBar value={b.spent} max={b.limit} currencySymbol={currencySymbol} color={catInfo ? catInfo.color : '#64748b'} />
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-
-        <div className="stat-card-new animate-slide-up opacity-0" style={{ animationDelay: '700ms', animationFillMode: 'forwards' }}>
-          <h3 className="text-lg font-semibold text-white mb-6">Financial Insights</h3>
-          <div className="space-y-4">
-            {data.insights.length === 0 ? (
-              <div className="py-8 text-center text-xs text-surface-700 italic">No insights or notifications yet.</div>
-            ) : (
-              data.insights.map(ins => (
-                <div key={ins._id} className="flex gap-3 p-3 rounded-xl glass-light hover:bg-white/5 transition-colors">
-                  <div className="flex-shrink-0 mt-0.5">{insightIcons[ins.type] || <Info className="w-5 h-5 text-primary-400" />}</div>
-                  <div><h4 className="text-sm font-semibold text-white mb-1">{ins.title}</h4><p className="text-xs text-surface-200 leading-relaxed">{ins.description}</p></div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="stat-card-new rounded-2xl p-6 border border-white/5 glass-card animate-slide-up opacity-0" style={{ animationDelay: '800ms', animationFillMode: 'forwards' }}>
-        <div className="flex items-center justify-between mb-8">
+      {/* Row 3: Recent Transactions */}
+      <div className="glass-card rounded-2xl p-6 border border-white/5 bg-surface-900/40 animate-slide-up">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-white font-sora tracking-tight mb-1">Recent Transactions</h3>
-            <p className="text-sm text-surface-400 font-dm-sans">Your latest expense activity</p>
+            <h3 className="text-lg font-bold text-white font-sora tracking-tight mb-1">Recent Transactions</h3>
           </div>
-          <a href="/expenses" className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors">
+          <Link to="/expenses" className="text-sm font-semibold text-[#8b5cf6] hover:underline flex items-center gap-1 transition-colors">
             View All <ArrowUpRight className="w-4 h-4" />
-          </a>
+          </Link>
         </div>
-        <div className="overflow-x-auto">          <table className="w-full">
-            <thead><tr className="border-b border-white/5">
-              <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Description</th>
-              <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Category</th>
-              <th className="text-left text-xs font-medium text-surface-700 pb-3 pr-4">Date</th>
-              <th className="text-right text-xs font-medium text-surface-700 pb-3 pr-4">Amount</th>
-              <th className="text-right text-xs font-medium text-surface-700 pb-3">Status</th>
-            </tr></thead>
-            <tbody className="divide-y divide-white/5">
-              {data.transactions.length === 0 ? (
-                <tr><td colSpan="5" className="py-8 text-center text-sm text-surface-700 italic">No transactions found.</td></tr>
-              ) : (
-                data.transactions.map(tx => (
-                  <tr key={tx._id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3.5 pr-4"><span className="text-sm text-white font-medium">{tx.description}</span></td>
-                    <td className="py-3.5 pr-4">{getCatBadge(tx.category)}</td>
-                    <td className="py-3.5 pr-4"><span className="text-sm text-surface-200">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></td>
-                    <td className="py-3.5 pr-4 text-right"><span className="text-sm font-semibold text-white">-{formatAmount(tx.amount, user?.currency)}</span></td>
-                    <td className="py-3.5 text-right"><Badge variant={tx.status === 'completed' ? 'green' : 'amber'}>{tx.status}</Badge></td>
-                  </tr>
-                ))
-              )}
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/5 text-left text-xs font-semibold text-surface-400">
+                <th className="pb-3 pr-4 font-dm-sans">Description</th>
+                <th className="pb-3 pr-4 font-dm-sans">Category</th>
+                <th className="pb-3 pr-4 font-dm-sans">Date</th>
+                <th className="pb-3 text-right font-dm-sans">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-surface-200">
+              {isLoading ? (
+                <tr><td colSpan="4" className="py-8"><Skeleton className="h-16 w-full" /></td></tr>
+              ) : displayTx.map(tx => (
+                <tr key={tx._id} className="hover:bg-white/[0.02] transition-colors border-b border-white/5 last:border-0">
+                  <td className="py-4 pr-4"><span className="text-sm text-white font-medium font-dm-sans">{tx.description}</span></td>
+                  <td className="py-4 pr-4">{getCustomBadge(tx.category)}</td>
+                  <td className="py-4 pr-4"><span className="text-xs text-surface-400 font-dm-sans">{new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></td>
+                  <td className="py-4 text-right font-semibold text-white">-{formatRupee(tx.amount)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

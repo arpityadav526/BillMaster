@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as authService from '../services/auth.service';
 import { socketService } from '../services/socket';
 
@@ -7,8 +7,17 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Ref to track if init has been done (survives StrictMode double-mount)
+  const initDone = useRef(false);
 
   useEffect(() => {
+    // Guard against StrictMode double-init
+    if (initDone.current) {
+      setLoading(false);
+      return;
+    }
+    initDone.current = true;
+
     const initAuth = async () => {
       const savedUser = localStorage.getItem('user');
       const token = localStorage.getItem('token');
@@ -30,6 +39,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('user');
             localStorage.removeItem('token');
             setUser(null);
+            socketService.disconnect();
           }
         }
       }
@@ -38,8 +48,11 @@ export const AuthProvider = ({ children }) => {
 
     initAuth();
 
+    // Cleanup only disconnects on actual unmount (not StrictMode re-mount)
     return () => {
-      socketService.disconnect();
+      // In StrictMode dev, this runs then re-mounts.
+      // We DON'T disconnect here because the socket should persist across the app lifecycle.
+      // Socket disconnect is handled explicitly via logout().
     };
   }, []);
 

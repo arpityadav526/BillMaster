@@ -30,15 +30,15 @@
   --color-amber-500: #f59e0b;
 
   --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
+  --color-surface-100: #dce1fb;
   --color-surface-200: #e2e8f0;
   --color-surface-300: #cbd5e1;
   --color-surface-400: #94a3b8;
-  --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-850: #172033;
-  --color-surface-900: #0f172a;
-  --color-surface-950: #020617;
+  --color-surface-700: #86948a;
+  --color-surface-800: #191f31;
+  --color-surface-850: #23293c;
+  --color-surface-900: #121829;
+  --color-surface-950: #0c1324;
 
   /* Typography */
   --font-sora: "Sora", sans-serif;
@@ -215,6 +215,16 @@
                        linear-gradient(135deg, rgba(16, 185, 129, 0.5), rgba(96, 165, 250, 0.3), rgba(139, 92, 246, 0.4));
     background-origin: border-box;
     background-clip: padding-box, border-box;
+  }
+
+  .glow-magenta-border {
+    position: relative;
+    border: 1px solid transparent;
+    background-image: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7)),
+                       linear-gradient(135deg, #ec4899, #f43f5e);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.15), inset 0 0 10px rgba(244, 63, 94, 0.05);
   }
 
   @keyframes shimmer {

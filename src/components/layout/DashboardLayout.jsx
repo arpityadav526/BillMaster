@@ -226,8 +226,9 @@ export function Sidebar({ collapsed, setCollapsed }) {
 }
 
 // ========== TOP NAVBAR ==========
-export function TopNavbar({ onAddExpense }) {
+export function TopNavbar({ onAddExpense, layoutType }) {
   const { user } = useAuth()
+  const location = useLocation()
   const [searchFocused, setSearchFocused] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
@@ -247,7 +248,6 @@ export function TopNavbar({ onAddExpense }) {
 
   useEffect(() => {
     fetchNotifications()
-    // Refresh every 2 minutes
     const interval = setInterval(fetchNotifications, 120000)
     return () => clearInterval(interval)
   }, [fetchNotifications])
@@ -257,59 +257,161 @@ export function TopNavbar({ onAddExpense }) {
 
   const unreadCount = notifications.filter(n => !n.read).length
 
+  const tabs = [
+    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/expenses', label: 'Expenses' },
+    { path: '/analytics', label: 'Analytics' },
+    { path: '/connected-accounts', label: 'Linked Apps' },
+    { path: '/settings', label: 'Settings' },
+  ]
+
+  if (layoutType === 'top-nav-tabs') {
+    return (
+      <header className="sticky top-0 z-30 glass border-b border-white/5 bg-[#0c1324]/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between h-16 px-6 lg:px-12">
+          {/* Logo */}
+          <Link to="/dashboard" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-400">
+              <Brain className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-lg font-bold text-white tracking-tight font-sora">BillMaster</span>
+          </Link>
+
+          {/* Navigation Tabs */}
+          <nav className="hidden md:flex items-center gap-6">
+            {tabs.map((tab) => {
+              const active = location.pathname === tab.path
+              return (
+                <Link
+                  key={tab.path}
+                  to={tab.path}
+                  className={`text-xs font-semibold py-1.5 transition-colors relative ${
+                    active ? 'text-white' : 'text-surface-400 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                  {active && (
+                    <motion.div
+                      layoutId="activeTopTab"
+                      className="absolute bottom-[-17px] left-0 right-0 h-0.5 bg-emerald-400"
+                    />
+                  )}
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* Profile Icon */}
+          <div className="flex items-center gap-4">
+            <Link to="/settings" className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center cursor-pointer overflow-hidden ring-offset-2 ring-offset-surface-950 transition-all hover:ring-2 hover:ring-emerald-500/50">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-surface-800 flex items-center justify-center">
+                  <UserIcon className="w-4 h-4 text-surface-400" />
+                </div>
+              )}
+            </Link>
+          </div>
+        </div>
+      </header>
+    )
+  }
+
+  if (layoutType === 'top-nav-search') {
+    return (
+      <header className="sticky top-0 z-30 glass border-b border-white/5 bg-[#0c1324]/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between h-16 px-6 lg:px-12">
+          {/* Logo */}
+          <Link to="/dashboard" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-400">
+              <Brain className="w-4.5 h-4.5" />
+            </div>
+            <span className="text-lg font-bold text-white tracking-tight font-sora">BillMaster</span>
+          </Link>
+
+          {/* Search bar */}
+          <div className="relative max-w-sm w-full mx-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-white/5 border border-white/5 text-surface-100 placeholder:text-surface-500 focus:outline-none focus:border-emerald-500/30 focus:bg-white/8 transition-all duration-200"
+            />
+          </div>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onAddExpense}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 font-semibold text-white shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all cursor-pointer text-[11px]"
+            >
+              + Add Expense
+            </button>
+
+            {/* Notification Bell */}
+            <div className="relative">
+              <button onClick={toggleNotif} className="p-2 rounded-xl hover:bg-white/5 text-surface-200 cursor-pointer">
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+              </button>
+              <NotificationPanel isOpen={notifOpen} onClose={closeNotif} notifications={notifications} setNotifications={setNotifications} loading={notifLoading} />
+            </div>
+
+            <Link to="/settings" className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center cursor-pointer overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-surface-800 flex items-center justify-center">
+                  <UserIcon className="w-4 h-4 text-surface-400" />
+                </div>
+              )}
+            </Link>
+          </div>
+        </div>
+      </header>
+    )
+  }
+
+  // Default Sidebar Layout Topbar
   return (
-    <header className="sticky top-0 z-30 glass border-b border-white/5">
+    <header className="sticky top-0 z-30 glass border-b border-white/5 bg-[#0c1324]/80 backdrop-blur-xl">
       <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-        {/* Search */}
         <div className={`relative flex-1 transition-all duration-300 ${searchFocused ? 'max-w-md lg:max-w-lg' : 'max-w-[140px] sm:max-w-xs lg:max-w-md'}`}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-700" />
           <input
             type="text"
             placeholder="Search transactions..."
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-xl bg-white/5 border border-white/5 text-surface-100 placeholder:text-surface-700 focus:outline-none focus:border-primary-500/30 focus:bg-white/8 transition-all duration-200"
+            className="w-full pl-10 pr-4 py-2 text-sm rounded-xl bg-white/5 border border-white/5 text-surface-100 placeholder:text-surface-700 focus:outline-none focus:border-emerald-500/30 focus:bg-white/8 transition-all duration-200"
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
           />
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 ml-4">
           <button
             onClick={onAddExpense}
-            className="btn-primary !py-2 !px-4 !text-xs hidden sm:inline-flex cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-[#4f46e5] text-white font-semibold shadow-[0_0_15px_rgba(79,70,229,0.2)] hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all cursor-pointer text-[11px]"
           >
-            <Plus className="w-4 h-4" />
-            Add Expense
+            + Add Expense
           </button>
 
-          {/* Notification Bell */}
           <div className="relative">
-            <button
-              onClick={toggleNotif}
-              className="relative p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
-            >
+            <button onClick={toggleNotif} className="relative p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer">
               <Bell className="w-5 h-5 text-surface-200" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              )}
+              {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
             </button>
-            <NotificationPanel 
-              isOpen={notifOpen} 
-              onClose={closeNotif} 
-              notifications={notifications}
-              setNotifications={setNotifications}
-              loading={notifLoading}
-            />
+            <NotificationPanel isOpen={notifOpen} onClose={closeNotif} notifications={notifications} setNotifications={setNotifications} loading={notifLoading} />
           </div>
 
           <Link to="/settings" className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center cursor-pointer overflow-hidden ring-offset-2 ring-offset-surface-950 transition-all hover:ring-2 hover:ring-emerald-500/50">
             {user?.avatar ? (
-              <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-            ) : null}
-            <div className={`w-full h-full bg-surface-800 flex items-center justify-center ${user?.avatar ? 'hidden' : 'flex'}`}>
-              <UserIcon className="w-4 h-4 text-surface-400" />
-            </div>
-            <span className={`text-xs font-bold text-white ${user?.avatar ? 'hidden' : ''}`}>{user?.name?.charAt(0).toUpperCase() || 'U'}</span>
+              <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-surface-800 flex items-center justify-center">
+                <UserIcon className="w-4 h-4 text-surface-400" />
+              </div>
+            )}
           </Link>
         </div>
       </div>
@@ -318,11 +420,12 @@ export function TopNavbar({ onAddExpense }) {
 }
 
 // ========== DASHBOARD LAYOUT ==========
-export function DashboardLayout({ children, onAddExpense }) {
+export function DashboardLayout({ children, onAddExpense, layoutType = 'sidebar' }) {
   const [collapsed, setCollapsed] = useState(false)
+  const isTopNav = layoutType === 'top-nav-tabs' || layoutType === 'top-nav-search'
 
   return (
-    <div className="min-h-screen bg-[#020617] relative">
+    <div className="min-h-screen bg-[#0c1324] relative text-surface-100">
       {/* FaultyTerminal Background */}
       <div className="absolute inset-0 z-0">
         <FaultyTerminal
@@ -345,9 +448,9 @@ export function DashboardLayout({ children, onAddExpense }) {
         />
       </div>
       
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <div className={`transition-all duration-500 ease-in-out ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-60'}`}>
-        <TopNavbar onAddExpense={onAddExpense} />
+      {!isTopNav && <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />}
+      <div className={`transition-all duration-500 ease-in-out ${isTopNav ? 'ml-0' : (collapsed ? 'lg:ml-[72px]' : 'lg:ml-60')}`}>
+        <TopNavbar onAddExpense={onAddExpense} layoutType={layoutType} />
         <main className="p-4 lg:p-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

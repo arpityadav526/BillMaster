@@ -3,6 +3,7 @@ import config from './src/config/index.js';
 import connectDB from './src/config/db.js';
 import fs from 'fs';
 import http from 'http';
+import jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 
 // Ensure uploads directory exists
@@ -23,21 +24,53 @@ const start = async () => {
   // Create HTTP server and wrap Express app
   const server = http.createServer(app);
 
-  // Initialize Socket.io
+  // Initialize Socket.io with proper CORS
   const io = new Server(server, {
     cors: {
       origin: config.cors.origin,
       methods: ['GET', 'POST'],
       credentials: true,
     },
+    // Allow both transports for better reliability
+    transports: ['websocket', 'polling'],
+    // Ping/pong settings to detect dead connections
+    pingInterval: 25000,
+    pingTimeout: 20000,
   });
 
-  // Socket.io connection handler
-  io.on('connection', (socket) => {
-    console.log(`  ↗ WebSocket connected: ${socket.id}`);
+  // ========== SOCKET AUTHENTICATION MIDDLEWARE ==========
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
     
-    socket.on('disconnect', () => {
-      console.log(`  ↙ WebSocket disconnected: ${socket.id}`);
+    if (!token) {
+      console.log('  ↗ Socket auth failed: No token provided');
+      return next(new Error('Authentication error: No token provided'));
+    }
+
+    try {
+      const decoded = jwt.verify(token, config.jwt.secret);
+      socket.userId = decoded.id;
+      next();
+    } catch (err) {
+      console.log('  ↗ Socket auth failed: Invalid token');
+      return next(new Error('Authentication error: Invalid token'));
+    }
+  });
+
+  // ========== SOCKET CONNECTION HANDLER ==========
+  io.on('connection', (socket) => {
+    const userId = socket.userId;
+    console.log(`  ↗ WebSocket connected: ${socket.id} (user: ${userId})`);
+    
+    // Join a user-specific room for targeted notifications
+    socket.join(`user:${userId}`);
+
+    socket.on('disconnect', (reason) => {
+      console.log(`  ↙ WebSocket disconnected: ${socket.id} (reason: ${reason})`);
+    });
+
+    socket.on('error', (err) => {
+      console.error(`  ✗ Socket error for ${socket.id}:`, err.message);
     });
   });
 
@@ -71,6 +104,7 @@ const start = async () => {
   // Graceful shutdown
   const shutdown = (signal) => {
     console.log(`\n  ↓ Received ${signal}, shutting down gracefully...`);
+    io.close(); // Close all socket connections
     server.close(() => {
       console.log('  ✓ Server closed');
       process.exit(0);
