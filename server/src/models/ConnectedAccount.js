@@ -11,7 +11,7 @@ const connectedAccountSchema = new mongoose.Schema(
     provider: {
       type: String,
       required: true,
-      enum: ['google_pay', 'phonepe', 'paytm', 'bank'],
+      enum: ['google_pay', 'phonepe', 'paytm', 'bank', 'gmail'],
     },
     accountName: {
       type: String,

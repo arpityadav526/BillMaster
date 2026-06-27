@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { Button, Input, Badge, CreditCard } from '../components/ui/index'
-import { User, Shield, Bell, Moon, Sun, Monitor, Trash2, Camera, Loader2, CreditCard as CreditCardIcon } from 'lucide-react'
+import { User, Shield, Bell, Moon, Sun, Monitor, Trash2, Camera, Loader2, CreditCard as CreditCardIcon, Mail, RefreshCw, Unplug, CheckCircle, AlertCircle, Clock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { motion } from 'framer-motion'
 import * as authService from '../services/auth.service'
+import * as gmailService from '../services/gmail.service'
 import { getCurrencySymbol } from '../utils/currency'
 
 export default function SettingsPage() {
@@ -36,6 +37,35 @@ export default function SettingsPage() {
       })
     }
   }, [user])
+
+  // Gmail: Fetch status on mount & handle OAuth redirect
+  useEffect(() => {
+    const fetchGmailStatus = async () => {
+      try {
+        const res = await gmailService.getStatus()
+        setGmailStatus(res.data)
+      } catch (err) {
+        console.error('Failed to fetch Gmail status:', err)
+      }
+    }
+    fetchGmailStatus()
+
+    // Check URL params for OAuth callback result
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('gmail_connected') === 'true') {
+      setActiveTab('gmail')
+      setGmailMessage('Gmail connected successfully!')
+      fetchGmailStatus()
+      window.history.replaceState({}, '', '/settings')
+      setTimeout(() => setGmailMessage(''), 5000)
+    }
+    if (params.get('gmail_error') === 'denied') {
+      setActiveTab('gmail')
+      setGmailMessage('Gmail connection was denied.')
+      window.history.replaceState({}, '', '/settings')
+      setTimeout(() => setGmailMessage(''), 5000)
+    }
+  }, [])
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [profileSuccess, setProfileSuccess] = useState('')
   const [avatarSuccess, setAvatarSuccess] = useState('')
@@ -49,6 +79,12 @@ export default function SettingsPage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  // Gmail Integration State
+  const [gmailStatus, setGmailStatus] = useState({ connected: false })
+  const [isGmailLoading, setIsGmailLoading] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [gmailMessage, setGmailMessage] = useState('')
 
   // Card Form State
   const [cardData, setCardData] = useState({
@@ -147,9 +183,54 @@ export default function SettingsPage() {
     }
   }
 
+  const handleConnectGmail = async () => {
+    setIsGmailLoading(true)
+    try {
+      const res = await gmailService.getAuthUrl()
+      window.location.href = res.data.authUrl
+    } catch (err) {
+      setGmailMessage('Failed to start Gmail connection. Check server configuration.')
+      setTimeout(() => setGmailMessage(''), 5000)
+    } finally {
+      setIsGmailLoading(false)
+    }
+  }
+
+  const handleDisconnectGmail = async () => {
+    setIsGmailLoading(true)
+    try {
+      await gmailService.disconnect()
+      setGmailStatus({ connected: false })
+      setGmailMessage('Gmail disconnected successfully.')
+      setTimeout(() => setGmailMessage(''), 5000)
+    } catch (err) {
+      setGmailMessage('Failed to disconnect Gmail.')
+      setTimeout(() => setGmailMessage(''), 5000)
+    } finally {
+      setIsGmailLoading(false)
+    }
+  }
+
+  const handleSyncGmail = async () => {
+    setIsSyncing(true)
+    try {
+      await gmailService.triggerSync()
+      setGmailMessage('Sync triggered! New transactions will appear shortly.')
+      const res = await gmailService.getStatus()
+      setGmailStatus(res.data)
+      setTimeout(() => setGmailMessage(''), 5000)
+    } catch (err) {
+      setGmailMessage('Sync failed. Please try again.')
+      setTimeout(() => setGmailMessage(''), 5000)
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'cards', label: 'Payment Cards', icon: CreditCardIcon },
+    { id: 'gmail', label: 'Gmail Sync', icon: Mail },
     { id: 'appearance', label: 'Appearance', icon: Moon },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -486,6 +567,149 @@ export default function SettingsPage() {
                     </label>
                   </div>
                 ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'gmail' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              {/* Connection Status Card */}
+              <div className="stat-card-new">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl ${gmailStatus.connected ? 'bg-emerald-500/10' : 'bg-surface-800'}`}>
+                      <Mail className={`w-5 h-5 ${gmailStatus.connected ? 'text-emerald-400' : 'text-surface-400'}`} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Gmail Integration</h3>
+                      <p className="text-xs text-surface-700">Automatically import expenses from transaction emails</p>
+                    </div>
+                  </div>
+                  <Badge variant={gmailStatus.connected ? 'green' : 'red'}>
+                    {gmailStatus.connected ? 'Connected' : 'Not Connected'}
+                  </Badge>
+                </div>
+
+                {gmailMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-3 mb-6 text-sm rounded-xl border ${
+                      gmailMessage.includes('success') || gmailMessage.includes('triggered')
+                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                        : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                    }`}
+                  >
+                    {gmailMessage}
+                  </motion.div>
+                )}
+
+                {gmailStatus.connected ? (
+                  <div className="space-y-4">
+                    {/* Status Info */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                          <span className="text-xs text-surface-400 uppercase tracking-wider font-medium">Status</span>
+                        </div>
+                        <p className="text-sm font-medium text-white capitalize">{gmailStatus.status}</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-blue-400" />
+                          <span className="text-xs text-surface-400 uppercase tracking-wider font-medium">Last Synced</span>
+                        </div>
+                        <p className="text-sm font-medium text-white">
+                          {gmailStatus.lastSynced
+                            ? new Date(gmailStatus.lastSynced).toLocaleString()
+                            : 'Never'
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Supported Providers Info */}
+                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                      <p className="text-xs text-surface-400 uppercase tracking-wider font-medium mb-3">Supported Providers</p>
+                      <div className="flex flex-wrap gap-2">
+                        {['Google Pay', 'PhonePe', 'Paytm'].map(p => (
+                          <span key={p} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            {p}
+                          </span>
+                        ))}
+                        {['SBI', 'HDFC', 'ICICI'].map(p => (
+                          <span key={p} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-surface-800 text-surface-400 border border-white/5">
+                            {p} (Soon)
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Auto-sync Info */}
+                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-white mb-1">Auto-Sync Enabled</p>
+                          <p className="text-xs text-surface-400 leading-relaxed">
+                            BillMaster automatically checks for new transaction emails every 15 minutes.
+                            Only transaction emails from supported providers are read. We never read personal emails.
+                            Uses read-only Gmail access.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+                      <Button onClick={handleSyncGmail} disabled={isSyncing}>
+                        {isSyncing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                        Sync Now
+                      </Button>
+                      <Button variant="danger" onClick={handleDisconnectGmail} disabled={isGmailLoading}>
+                        {isGmailLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Unplug className="w-4 h-4 mr-2" />}
+                        Disconnect Gmail
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Feature Highlights */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[
+                        { title: 'Auto Import', desc: 'Transaction emails are automatically parsed and imported as expenses', icon: '📧' },
+                        { title: 'Smart Categories', desc: 'Merchants are automatically categorized (Food, Transport, Shopping...)', icon: '🏷️' },
+                        { title: 'Budget Insights', desc: 'Get smart notifications about budget usage and spending trends', icon: '📊' },
+                      ].map((feature, i) => (
+                        <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+                          <div className="text-2xl mb-2">{feature.icon}</div>
+                          <p className="text-sm font-medium text-white mb-1">{feature.title}</p>
+                          <p className="text-xs text-surface-700 leading-relaxed">{feature.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Security Note */}
+                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                      <div className="flex items-start gap-3">
+                        <Shield className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-white mb-1">Secure & Private</p>
+                          <p className="text-xs text-surface-400 leading-relaxed">
+                            We use Google OAuth 2.0 with read-only access. We never store your Gmail password.
+                            Only transaction notification emails are read. You can disconnect at any time.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button onClick={handleConnectGmail} disabled={isGmailLoading} className="w-full sm:w-auto">
+                      {isGmailLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Mail className="w-4 h-4 mr-2" />}
+                      Connect Gmail
+                    </Button>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

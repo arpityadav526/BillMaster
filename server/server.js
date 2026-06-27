@@ -88,9 +88,9 @@ const start = async () => {
     }
   });
 
-  // Initialize Schedulers (Background Jobs)
+  // Initialize Schedulers (Background Jobs) — pass io for real-time events
   const { initScheduler } = await import('./src/jobs/scheduler.js');
-  initScheduler();
+  initScheduler(io);
 
   // Start HTTP server
   server.listen(config.port, () => {

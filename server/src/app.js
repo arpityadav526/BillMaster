@@ -18,6 +18,7 @@ import incomeRoutes from './routes/incomes.js';
 import connectedAccountRoutes from './routes/connectedAccounts.js';
 import analyticsRoutes from './routes/analytics.js';
 import userRoutes from './routes/users.js';
+import gmailRoutes from './routes/gmail.js';
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/incomes', incomeRoutes);
 app.use('/api/connected-accounts', connectedAccountRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/gmail', gmailRoutes);
 
 // Proxy route for ML service
 app.use('/api/ml', async (req, res) => {

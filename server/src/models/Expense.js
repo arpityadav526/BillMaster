@@ -57,6 +57,24 @@ const expenseSchema = new mongoose.Schema(
       ref: 'Receipt',
       default: null,
     },
+    // ========== Gmail Auto-Import Fields ==========
+    isAutomated: {
+      type: Boolean,
+      default: false,
+    },
+    rawEmailId: {
+      type: String,
+      default: null,
+    },
+    upiReferenceNumber: {
+      type: String,
+      default: null,
+    },
+    emailProvider: {
+      type: String,
+      enum: ['google_pay', 'phonepe', 'paytm', 'sbi', 'hdfc', 'icici', 'axis', 'amazon_pay', null],
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -67,6 +85,8 @@ const expenseSchema = new mongoose.Schema(
 expenseSchema.index({ user: 1, date: -1 });
 expenseSchema.index({ user: 1, category: 1 });
 expenseSchema.index({ user: 1, createdAt: -1 });
+// Sparse unique index — ensures no duplicate email imports
+expenseSchema.index({ rawEmailId: 1 }, { unique: true, sparse: true });
 
 export { CATEGORIES };
 const Expense = mongoose.model('Expense', expenseSchema);

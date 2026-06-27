@@ -44,6 +44,19 @@ const incomeSchema = new mongoose.Schema(
       maxlength: 500,
       default: '',
     },
+    // ========== Gmail Auto-Import Fields ==========
+    isAutomated: {
+      type: Boolean,
+      default: false,
+    },
+    rawEmailId: {
+      type: String,
+      default: null,
+    },
+    upiReferenceNumber: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -51,6 +64,8 @@ const incomeSchema = new mongoose.Schema(
 );
 
 incomeSchema.index({ user: 1, date: -1 });
+// Sparse unique index — ensures no duplicate email imports
+incomeSchema.index({ rawEmailId: 1 }, { unique: true, sparse: true });
 
 const Income = mongoose.model('Income', incomeSchema);
 export default Income;

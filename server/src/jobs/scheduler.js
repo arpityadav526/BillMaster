@@ -6,8 +6,9 @@ import Budget from '../models/Budget.js';
 import Income from '../models/Income.js';
 import { sendMonthlyReport, sendEmail, sendWeeklyInsightReport } from '../utils/mailer.js';
 import { createNotification } from '../services/notificationService.js';
+import { syncAllAccounts } from '../services/gmail/EmailSyncJob.js';
 
-export const initScheduler = () => {
+export const initScheduler = (io) => {
   console.log('Initializing BillMaster Automated Schedulers...');
 
   // 1. Monthly Financial Report (1st of every month at 00:01)
@@ -170,5 +171,15 @@ export const initScheduler = () => {
     }
   });
 
-  console.log('Schedulers set: Monthly Report, Weekly Insights, End-of-Month Reminders, Salary Alerts.');
+  // 5. Gmail Email Sync — Automatic Expense Import (Every 15 minutes)
+  cron.schedule('*/15 * * * *', async () => {
+    console.log('Running Gmail Email Sync Job...');
+    try {
+      await syncAllAccounts(io);
+    } catch (err) {
+      console.error('Gmail Email Sync Job failed:', err);
+    }
+  });
+
+  console.log('Schedulers set: Monthly Report, Weekly Insights, End-of-Month Reminders, Salary Alerts, Gmail Sync.');
 };

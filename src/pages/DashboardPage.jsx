@@ -12,6 +12,7 @@ import * as analyticsService from '../services/analytics.service'
 import * as incomeService from '../services/income.service'
 import { formatAmount } from '../utils/currency'
 import { useAuth } from '../context/AuthContext'
+import { socketService } from '../services/socket'
 
 const CustomTooltip = ({ active, payload, label, currencySymbol = '₹' }) => {
   if (active && payload && payload.length) {
@@ -172,6 +173,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData()
+  }, [fetchDashboardData])
+
+  // Real-time updates: auto-refresh when Gmail sync imports new transactions
+  useEffect(() => {
+    const handleGmailImport = () => {
+      console.log('[Dashboard] Gmail transaction imported — refreshing data...')
+      fetchDashboardData()
+    }
+    socketService.on('GMAIL_TRANSACTION_IMPORTED', handleGmailImport)
+    return () => socketService.off('GMAIL_TRANSACTION_IMPORTED', handleGmailImport)
   }, [fetchDashboardData])
 
   const handleAddExpense = async (e) => {
